@@ -28,6 +28,10 @@ stateBtn.addEventListener('click', () => {
     hud.banner('Erst eine Staerke waehlen!', 1400);
     return;
   }
+  if (game.state === 'monument') {
+    game.closeMonument();
+    return;
+  }
   if (game.state === 'running') {
     game.state = 'paused';
   } else if (game.state === 'paused') {
@@ -55,7 +59,11 @@ for (const btn of towerBtns) {
   });
 }
 
-// Turmplatz N/O/S/W antippen = gewaehlten Turmtyp bauen
+// Denkmal-Button: oeffnet das Upgrade-Panel (pausiert)
+const monumentBtn = document.getElementById('monument-btn');
+monumentBtn.addEventListener('click', () => game.openMonument());
+
+// Turmplatz N/O/S/W antippen = gewaehlten Turmtyp bauen; Denkmal antippen = Upgrades
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 canvas.addEventListener('pointerdown', (event) => {
@@ -71,6 +79,10 @@ canvas.addEventListener('pointerdown', (event) => {
     } else {
       hud.banner('Tuerme stehen fest: Aufstellung nur vor Welle 1', 1400);
     }
+  } else if (game.state === 'ready' || game.state === 'running' || game.state === 'paused') {
+    // Denkmal antippen = Upgrade-Panel oeffnen
+    const mh = raycaster.intersectObjects(world.monument.children, true);
+    if (mh.length > 0) game.openMonument();
   }
 });
 

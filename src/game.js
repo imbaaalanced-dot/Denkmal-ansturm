@@ -13,6 +13,29 @@ import { TOWER_TYPES, buildTowerMesh } from './towers.js';
 export const SPAWN_RADIUS = 15;
 const MONUMENT_RADIUS = 2.4;
 
+// Denkmal-Selbstverteidigung (wie Evil Tower): Der Loewe feuert goldene Funken
+// aus dem Waechterkristall und ist per Energie upgradbar.
+// Kosten steigen je Stufe um den Faktor 1.6; Heilung repariert den Loewen.
+const MONUMENT_UPGRADES = [
+  { key: 'dmg', icon: '🔥', name: 'Golddornen', max: 10,
+    level: (gm) => gm.monu.lvDmg,
+    cost: (gm) => Math.round(15 * Math.pow(1.6, gm.monu.lvDmg)),
+    desc: (gm) => 'Funken-Schaden ' + Math.round(gm.monu.dmg) + ' → ' + Math.round(gm.monu.dmg + 4) },
+  { key: 'rate', icon: '⚡', name: 'Zorn des Löwen', max: 8,
+    level: (gm) => gm.monu.lvRate,
+    cost: (gm) => Math.round(20 * Math.pow(1.6, gm.monu.lvRate)),
+    desc: (gm) => 'Schüsse/s ' + (1 / gm.monu.rate).toFixed(1) + ' → ' + (1 / (gm.monu.rate * 0.88)).toFixed(1) },
+  { key: 'range', icon: '🌀', name: 'Wachender Funk', max: 6,
+    level: (gm) => gm.monu.lvRange,
+    cost: (gm) => Math.round(20 * Math.pow(1.6, gm.monu.lvRange)),
+    desc: (gm) => 'Reichweite ' + gm.monu.range.toFixed(1) + ' → ' + (gm.monu.range + 0.9).toFixed(1) },
+  { key: 'heal', icon: '🛡️', name: 'Steinmetz-Ruf', max: 999,
+    level: () => 0,
+    cost: () => 30,
+    cant: (gm) => gm.hp >= gm.maxHp,
+    desc: (gm) => 'Löwe heilt +150 LP (aktuell ' + Math.ceil(gm.hp) + ')' },
+];
+
 // Kirche steht hinten oben im Bild; in diesem Keil werden Spawns leicht verschoben,
 // damit Gegner nicht IM Kirchengebaude spawnen (optisch sauber, es bleibt 360-Ansturm).
 const CHURCH_ANGLE = Math.PI * 1.25;
@@ -208,6 +231,8 @@ export class Game {
     this.perk = { dmgMul: 1, rateMul: 1, rangeMul: 1, bountyMul: 1, waveBonus: 0, slow: 0, slowDur: 0, splash: false, splashRadius: 0, crit: 0 };
     this.chosenPerks = [];
     this.selectedTower = 'bolzen';
+    // Denkmal-Selbstverteidigung: Goldfunken aus dem Waechterkristall (upgradbar)
+    this.monu = { dmg: 6, rate: 1.0, range: 5.5, cool: 0.5, lvDmg: 0, lvRate: 0, lvRange: 0 };
     this.spawnTimer = 0;
     this.interWaveTimer = 0;
     this.waveCleared = true;
@@ -320,6 +345,48 @@ export class Game {
     this.hud.sync(this);
   }
 
+  // --- Denkmal-Upgrade-Panel (Evil-Tower-artig): pausiert die Simulation ---
+  openMonument() {
+    if (this.state !== 'ready' && this.state !== 'running' && this.state !== 'paused') return false;
+    this.resumeState = this.state;
+    this.state = 'monument';
+    this.hud.setState(this.state);
+    this.hud.showMonument(this.monumentOffers(), (key) => this.buyMonument(key), () => this.closeMonument());
+    return true;
+  }
+
+  closeMonument() {
+    this.state = this.resumeState || 'running';
+    this.hud.hideMonument();
+    this.hud.setState(this.state);
+  }
+
+  monumentOffers() {
+    return MONUMENT_UPGRADES.map((cfg) => {
+      const level = cfg.level(this);
+      const cost = cfg.cost(this);
+      const maxed = level >= cfg.max;
+      const cant = cfg.cant ? cfg.cant(this) : false;
+      return {
+        key: cfg.key, icon: cfg.icon, name: cfg.name, desc: cfg.desc(this),
+        cost, maxed, cant,
+        disabled: maxed || cant || this.energy < cost,
+      };
+    });
+  }
+
+  buyMonument(key) {
+    const off = this.monumentOffers().find((o) => o.key === key);
+    if (!off || off.disabled) return;
+    this.energy -= off.cost;
+    if (key === 'dmg') { this.monu.dmg += 4; this.monu.lvDmg += 1; }
+    if (key === 'rate') { this.monu.rate *= 0.88; this.monu.lvRate += 1; }
+    if (key === 'range') { this.monu.range += 0.9; this.monu.lvRange += 1; }
+    if (key === 'heal') { this.hp = Math.min(this.maxHp, this.hp + 150); }
+    this.hud.sync(this);
+    this.hud.showMonument(this.monumentOffers(), (k) => this.buyMonument(k), () => this.closeMonument());
+  }
+
   update(dtRaw) {
     if (this.state === 'running') {
       const dt = Math.min(dtRaw, 0.05) * this.speed;
@@ -418,6 +485,29 @@ export class Game {
         const slowAmt = Math.max(tower.slow, this.perk.slow);
         const slowDur = slowAmt > 0 ? Math.max(tower.slowDur, this.perk.slowDur) : 0;
         this.projectiles.push({ mesh: proj, target, speed: 16, dmg, splashFactor, splashRadius, slowAmt, slowDur });
+      }
+
+      // Der Loewe wehrt sich selbst: goldene Funken aus dem Waechterkristall
+      this.monu.cool -= dt;
+      if (this.monu.cool <= 0) {
+        let target = null;
+        let best = Infinity;
+        for (const enemy of this.enemies) {
+          const d = enemy.mesh.position.length();
+          if (d <= this.monu.range && d < best) { best = d; target = enemy; }
+        }
+        if (target) {
+          this.monu.cool = this.monu.rate;
+          const proj = new THREE.Mesh(
+            new THREE.SphereGeometry(0.14, 8, 8),
+            new THREE.MeshBasicMaterial({ color: 0xffd76a })
+          );
+          proj.position.set(0, 3.1, 0);
+          this.scene.add(proj);
+          this.projectiles.push({ mesh: proj, target, speed: 18, dmg: this.monu.dmg, splashFactor: 0, splashRadius: 0, slowAmt: 0, slowDur: 0 });
+        } else {
+          this.monu.cool = 0.2; // bald wieder pruefen
+        }
       }
 
       // Projektile fliegen (homing)

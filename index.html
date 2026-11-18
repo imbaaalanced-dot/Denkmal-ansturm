@@ -35,6 +35,18 @@
     .perk-name { font-size: 16px; font-weight: 700; }
     .perk-desc { font-size: 12px; opacity: 0.8; }
     #tower-bar[hidden] { display: none; }
+    #monument-bar { margin-top: 2px; }
+    #monument-bar[hidden] { display: none; }
+    #monument-btn { background: rgba(48, 30, 14, 0.95) !important; border-color: #c9864a !important; flex: 1; }
+    #monument-overlay { position: fixed; inset: 0; z-index: 11; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: rgba(18, 7, 9, 0.92); padding: 16px; pointer-events: auto; }
+    #monument-overlay[hidden] { display: none; }
+    #monument-title { font-size: 20px; font-weight: 800; letter-spacing: 0.5px; color: #e8c66a; text-align: center; }
+    #monument-rows { display: flex; flex-direction: column; gap: 10px; width: min(340px, 88vw); }
+    .monument-row { display: flex; align-items: center; gap: 12px; text-align: left; padding: 12px 14px; color: #e8ddd2; background: rgba(40, 20, 24, 0.95); border: 1px solid #c9864a; border-radius: 12px; cursor: pointer; }
+    .monument-row:disabled { opacity: 0.45; cursor: default; }
+    .monument-row:not(:disabled):active { transform: scale(0.97); background: rgba(66, 30, 36, 0.95); }
+    .monument-cost { margin-left: auto; font-weight: 800; color: #e8c66a; white-space: nowrap; }
+    #monument-close { width: min(340px, 88vw); padding: 12px 6px; font-size: 14px; font-weight: 700; color: #e8ddd2; background: rgba(38, 20, 22, 0.95); border: 1px solid #4a2f2f; border-radius: 10px; cursor: pointer; }
   </style>
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -56,6 +68,9 @@
         <button data-tower="splitter">💥 Splitter</button>
         <button data-tower="frost">❄️ Frost</button>
       </div>
+      <div class="controls" id="monument-bar" hidden>
+        <button id="monument-btn">🦁 Denkmal aufrüsten</button>
+      </div>
       <div class="controls">
         <button data-speed="1" class="active">x1</button>
         <button data-speed="2">x2</button>
@@ -63,13 +78,18 @@
         <button data-speed="5">x5</button>
         <button id="state-btn">Start</button>
       </div>
-      <div id="hint">Vor Start: Turmtyp wählen und die 4 Plätze N/O/S/W besetzen (10 Energie je Turm, danach fest) · Stärken-Wahl nach jeder 5. Welle · Verteidige den Löwen!</div>
+      <div id="hint">Turm-Typ wählen → die 4 Plätze N/O/S/W besetzen · Denkmal (oder 🦁-Button) antippen = Upgrades, der Löwe wehrt sich selbst mit Gold-Funken · Stärken-Wahl nach jeder 5. Welle</div>
     </div>
   </div>
   <div id="banner" hidden></div>
   <div id="perk-overlay" hidden>
     <div id="perk-title">Wähle eine Stärke</div>
     <div id="perk-cards"></div>
+  </div>
+  <div id="monument-overlay" hidden>
+    <div id="monument-title">🦁 Denkmal-Löwe</div>
+    <div id="monument-rows"></div>
+    <button id="monument-close" type="button">Weiter</button>
   </div>
   <script type="module" src="./src/main.js"></script>
 </body>
