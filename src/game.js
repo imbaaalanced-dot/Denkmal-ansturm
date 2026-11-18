@@ -18,14 +18,14 @@ const MONUMENT_RADIUS = 2.4;
 const CHURCH_ANGLE = Math.PI * 1.25;
 const CHURCH_WEDGE = 0.65;
 
-const stoneMat = new THREE.MeshStandardMaterial({ color: 0x8d9199, roughness: 0.95 });
-const darkStoneMat = new THREE.MeshStandardMaterial({ color: 0x4a4f5c, roughness: 0.8 });
-const mossMat = new THREE.MeshStandardMaterial({ color: 0x39513a, roughness: 1.0 });
-const lionMat = new THREE.MeshStandardMaterial({ color: 0xb3a284, roughness: 0.85 });
+const stoneMat = new THREE.MeshStandardMaterial({ color: 0x9a9082, roughness: 0.95 });
+const darkStoneMat = new THREE.MeshStandardMaterial({ color: 0x574a42, roughness: 0.8 });
+const mossMat = new THREE.MeshStandardMaterial({ color: 0x55402c, roughness: 1.0 });
+const lionMat = new THREE.MeshStandardMaterial({ color: 0xb59a62, roughness: 0.85 });
 const brickMat = new THREE.MeshStandardMaterial({ color: 0x7a5644, roughness: 0.95 });
-const roofMat = new THREE.MeshStandardMaterial({ color: 0x363b47, roughness: 0.75, metalness: 0.15 });
-const glassMat = new THREE.MeshStandardMaterial({ color: 0x22283a, emissive: 0x0e1830, roughness: 0.4 });
-const slotMat = new THREE.MeshStandardMaterial({ color: 0x2b3441, roughness: 0.85 });
+const roofMat = new THREE.MeshStandardMaterial({ color: 0x3d3336, roughness: 0.75, metalness: 0.15 });
+const glassMat = new THREE.MeshStandardMaterial({ color: 0x352525, emissive: 0x5a3413, roughness: 0.4 });
+const slotMat = new THREE.MeshStandardMaterial({ color: 0x403630, roughness: 0.85 });
 
 // --- Platzhalter: Loewe auf dem Kriegerdenkmal ---
 function buildLion() {
@@ -129,7 +129,7 @@ export function buildWorld(scene) {
   // Spawn-Ring am Arenarand (360-Andeutung)
   const spawnRing = new THREE.Mesh(
     new THREE.RingGeometry(SPAWN_RADIUS + 0.4, SPAWN_RADIUS + 0.85, 96),
-    new THREE.MeshBasicMaterial({ color: 0x6a2a3a, transparent: true, opacity: 0.55, side: THREE.DoubleSide })
+    new THREE.MeshBasicMaterial({ color: 0x9a2430, transparent: true, opacity: 0.75, side: THREE.DoubleSide })
   );
   spawnRing.rotation.x = -Math.PI / 2;
   spawnRing.position.y = 0.03;
@@ -151,7 +151,7 @@ export function buildWorld(scene) {
   // Wachterfunke ueber dem Loewen (leuchtet, dreht sich)
   const crystal = new THREE.Mesh(
     new THREE.OctahedronGeometry(0.35),
-    new THREE.MeshStandardMaterial({ color: 0x5a86ff, emissive: 0x1d3fd6, emissiveIntensity: 1.0 })
+    new THREE.MeshStandardMaterial({ color: 0xffd76a, emissive: 0xc2761d, emissiveIntensity: 1.2 })
   );
   crystal.position.set(0, 3.1, 0);
   scene.add(crystal);
@@ -404,7 +404,7 @@ export class Game {
         let dmg = tower.dmg * this.perk.dmgMul;
         let crit = false;
         if (Math.random() < this.perk.crit) { dmg *= 2; crit = true; }
-        const projColor = crit ? 0xffd76a : (tower.key === 'frost' ? 0x9fd9ff : tower.key === 'splitter' ? 0xff9a5a : 0x9cc4ff);
+        const projColor = crit ? 0xfff2b0 : (tower.key === 'frost' ? 0x9fd9ff : tower.key === 'splitter' ? 0xff8a4a : 0xffd76a);
         const proj = new THREE.Mesh(
           new THREE.SphereGeometry(crit ? 0.24 : 0.16, 8, 8),
           new THREE.MeshBasicMaterial({ color: projColor })

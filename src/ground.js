@@ -12,12 +12,12 @@ export function createGroundTexture(size = 1024, worldRadius = 21) {
   const ctx = canvas.getContext('2d');
   const C = size / 2;
 
-  // 1) Basis: dunkler, entsaettigter Kirchhof-Rasen
-  ctx.fillStyle = '#1e2822';
+  // 1) Basis: knochengrauer Blutmond-Boden
+  ctx.fillStyle = '#262326';
   ctx.fillRect(0, 0, size, size);
 
   // 2) grosse Farbflecken fuer Rasen-Variation
-  const blotch = ['#1a241f', '#232d20', '#202a26', '#252e1d', '#1c2622'];
+  const blotch = ['#231f22', '#2b2626', '#25222a', '#2a2521', '#201d1f'];
   for (let i = 0; i < 380; i++) {
     ctx.fillStyle = blotch[(Math.random() * blotch.length) | 0];
     ctx.globalAlpha = 0.25 + Math.random() * 0.3;
@@ -32,7 +32,7 @@ export function createGroundTexture(size = 1024, worldRadius = 21) {
   // 3) feines Kies-Rauschen
   ctx.globalAlpha = 1;
   for (let i = 0; i < 9000; i++) {
-    ctx.fillStyle = Math.random() > 0.5 ? '#26332318' : '#121a1428';
+    ctx.fillStyle = Math.random() > 0.5 ? '#392f2e18' : '#15101228';
     ctx.fillRect(Math.random() * size, Math.random() * size, 1 + Math.random() * 2, 1 + Math.random() * 2);
   }
 
@@ -40,7 +40,7 @@ export function createGroundTexture(size = 1024, worldRadius = 21) {
   for (let i = 0; i < 2600; i++) {
     const gx = Math.random() * size;
     const gy = Math.random() * size;
-    ctx.strokeStyle = Math.random() > 0.5 ? '#2c3a2a' : '#17251d';
+    ctx.strokeStyle = Math.random() > 0.5 ? '#4a4132' : '#201b17';
     ctx.globalAlpha = 0.45 + Math.random() * 0.4;
     ctx.lineWidth = 1 + Math.random();
     ctx.beginPath();
@@ -55,7 +55,7 @@ export function createGroundTexture(size = 1024, worldRadius = 21) {
   const stonePx = plaza * 0.055;
 
   // Kies-Unterboden
-  ctx.fillStyle = '#2c2e33';
+  ctx.fillStyle = '#332e33';
   ctx.beginPath();
   ctx.arc(C, C, plaza * 1.06, 0, Math.PI * 2);
   ctx.fill();
@@ -70,11 +70,11 @@ export function createGroundTexture(size = 1024, worldRadius = 21) {
       const sx = C + Math.cos(a) * rr;
       const sy = C + Math.sin(a) * rr;
       const grey = 62 + ((Math.random() * 34) | 0);
-      ctx.fillStyle = 'rgb(' + grey + ',' + (grey + 4) + ',' + (grey - 6) + ')';
+      ctx.fillStyle = 'rgb(' + (grey + 8) + ',' + grey + ',' + (grey - 10) + ')';
       ctx.beginPath();
       ctx.ellipse(sx, sy, stonePx * (0.8 + Math.random() * 0.4), stonePx * (0.62 + Math.random() * 0.33), a, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = '#15171c';
+      ctx.strokeStyle = '#161314';
       ctx.globalAlpha = 0.7;
       ctx.lineWidth = 1;
       ctx.stroke();
@@ -84,16 +84,16 @@ export function createGroundTexture(size = 1024, worldRadius = 21) {
     row++;
   }
   // Mittelstein unter dem Denkmal
-  ctx.fillStyle = '#4a4f58';
+  ctx.fillStyle = '#56504a';
   ctx.beginPath();
   ctx.arc(C, C, stonePx * 1.6, 0, Math.PI * 2);
   ctx.fill();
 
-  // 6) Moos am Plazarand
+  // 6) Duerre Moos-Flecken am Plazarand (Blutmond)
   for (let i = 0; i < 260; i++) {
     const a = Math.random() * Math.PI * 2;
     const rr = plaza * (0.5 + Math.random() * 0.5);
-    ctx.fillStyle = '#3f5a3a';
+    ctx.fillStyle = '#54402e';
     ctx.globalAlpha = 0.25 + Math.random() * 0.3;
     ctx.beginPath();
     ctx.arc(C + Math.cos(a) * rr, C + Math.sin(a) * rr, 1.5 + Math.random() * 3, 0, Math.PI * 2);
@@ -101,8 +101,8 @@ export function createGroundTexture(size = 1024, worldRadius = 21) {
   }
   ctx.globalAlpha = 1;
 
-  // 7) Herbstlaub (wie auf den Referenzfotos)
-  const leaves = ['#7a4a26', '#8a5a2f', '#5e3a20', '#96402a', '#6b562e'];
+  // 7) Blutmond-Laub: dunkles Rot und Rost
+  const leaves = ['#8a3a28', '#96402c', '#5e2f22', '#a83828', '#6b4430'];
   for (let i = 0; i < 750; i++) {
     ctx.fillStyle = leaves[(Math.random() * leaves.length) | 0];
     ctx.globalAlpha = 0.45 + Math.random() * 0.5;
@@ -120,8 +120,8 @@ export function createGroundTexture(size = 1024, worldRadius = 21) {
 
   // 8) Vignette Richtung Arenarand (Dark-Fantasy-Tiefe)
   const grad = ctx.createRadialGradient(C, C, C * 0.55, C, C, C);
-  grad.addColorStop(0, 'rgba(8,10,14,0)');
-  grad.addColorStop(1, 'rgba(8,10,14,0.55)');
+  grad.addColorStop(0, 'rgba(18,6,8,0)');
+  grad.addColorStop(1, 'rgba(18,6,8,0.62)');
   ctx.fillStyle = grad;
   ctx.beginPath();
   ctx.arc(C, C, C, 0, Math.PI * 2);
@@ -137,8 +137,8 @@ export function createGroundTexture(size = 1024, worldRadius = 21) {
 // ausserhalb der Gegner-Spawnradien (15-15.7) und ohne den Kirchenkeil.
 export function buildGravestones(scene, churchAngle, churchWedge) {
   const stones = [];
-  const stoneMat = new THREE.MeshStandardMaterial({ color: 0x565c66, roughness: 0.9 });
-  const mossMat = new THREE.MeshStandardMaterial({ color: 0x3f5a3a, roughness: 1.0 });
+  const stoneMat = new THREE.MeshStandardMaterial({ color: 0x7d766b, roughness: 0.9 });
+  const mossMat = new THREE.MeshStandardMaterial({ color: 0x50402e, roughness: 1.0 });
 
   const count = 16;
   let placed = 0;

@@ -21,8 +21,8 @@ export const TOWER_TYPES = {
   },
 };
 
-const towerBodyMat = new THREE.MeshStandardMaterial({ color: 0x4a5568, roughness: 0.6 });
-const boltHeadMat = new THREE.MeshStandardMaterial({ color: 0x7fb2ff, emissive: 0x2a5bd7, emissiveIntensity: 0.8 });
+const towerBodyMat = new THREE.MeshStandardMaterial({ color: 0x584a3e, roughness: 0.6 });
+const boltHeadMat = new THREE.MeshStandardMaterial({ color: 0xffd76a, emissive: 0xb8862a, emissiveIntensity: 0.9 });
 const emberHeadMat = new THREE.MeshStandardMaterial({ color: 0xff9a5a, emissive: 0xd7601d, emissiveIntensity: 0.7 });
 const iceHeadMat = new THREE.MeshStandardMaterial({ color: 0xbfeaff, emissive: 0x2a7bd7, emissiveIntensity: 0.6 });
 

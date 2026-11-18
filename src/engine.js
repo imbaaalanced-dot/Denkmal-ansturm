@@ -10,16 +10,16 @@ export function createEngine(canvas) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0d1018);
-  scene.fog = new THREE.Fog(0x0d1018, 46, 100);
+  scene.background = new THREE.Color(0x1a0c10);
+  scene.fog = new THREE.Fog(0x1a0c10, 46, 100);
 
   const camera = new THREE.OrthographicCamera(-19, 19, 19, -19, 0.1, 220);
   camera.position.set(34, 38, 34);
   camera.lookAt(0, 2, 0);
 
-  // Dark-Fantasy-Licht: kalte Hemisphaere + Mondlicht + Denkmal-Glut
-  scene.add(new THREE.HemisphereLight(0x3c4a66, 0x141018, 1.1));
-  const moon = new THREE.DirectionalLight(0x94a3d4, 1.6);
+  // Blutmond-Licht: rote Hemisphaere + Blutmond-Schatten + goldene Denkmal-Glut
+  scene.add(new THREE.HemisphereLight(0x7a3a3a, 0x1a1014, 1.15));
+  const moon = new THREE.DirectionalLight(0xe08a6a, 1.7);
   moon.position.set(-16, 26, -12);
   moon.castShadow = true;
   moon.shadow.mapSize.set(1024, 1024);
@@ -30,7 +30,7 @@ export function createEngine(canvas) {
   moon.shadow.camera.far = 80;
   scene.add(moon);
 
-  const crystalGlow = new THREE.PointLight(0x4d7cff, 20, 16, 2);
+  const crystalGlow = new THREE.PointLight(0xffc86a, 24, 16, 2);
   crystalGlow.position.set(0, 4, 0);
   scene.add(crystalGlow);
 
