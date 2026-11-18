@@ -24,6 +24,10 @@ for (const btn of speedBtns) {
 // Start / Pause / Neustart
 const stateBtn = document.getElementById('state-btn');
 stateBtn.addEventListener('click', () => {
+  if (game.state === 'perk') {
+    hud.banner('Erst eine Staerke waehlen!', 1400);
+    return;
+  }
   if (game.state === 'running') {
     game.state = 'paused';
   } else if (game.state === 'paused') {

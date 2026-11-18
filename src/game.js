@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { generateWave, MAX_WAVES } from './wavedata.js';
 import { createGroundTexture, buildGravestones } from './ground.js';
 import { ENEMY_TYPES, buildEnemyMesh } from './enemies.js';
+import { rollPerkOptions } from './perks.js';
 
 // Level L01 - Ender Dorfkirche:
 // Verteidigungsziel ist der LOEWE auf dem Kriegerdenkmal (Zentrum der Arena).
@@ -201,6 +202,9 @@ export class Game {
     this.hp = this.maxHp;
     this.energy = 60;
     this.speed = 1;
+    // Roguelite-Perks: Multiplikatoren wirken sofort auf alle Tuerme
+    this.perk = { dmgMul: 1, rateMul: 1, rangeMul: 1, bountyMul: 1, waveBonus: 0, slow: 0, slowDur: 0, splash: false, splashRadius: 0, crit: 0 };
+    this.chosenPerks = [];
     this.spawnTimer = 0;
     this.interWaveTimer = 0;
     this.waveCleared = true;
@@ -218,7 +222,7 @@ export class Game {
     this.interWaveTimer = 4;
     let text = 'Welle ' + this.wave + '/' + MAX_WAVES;
     if (wave.isBoss) text = 'Welle ' + this.wave + ': Mech-Drache greift an!';
-    else if (this.wave % 5 === 0) text = 'Welle ' + this.wave + ': Perk-Wahl (Platzhalter)';
+    else if (this.wave % 5 === 0) text = 'Welle ' + this.wave + ': Nach dieser Welle waehlst du eine Staerke!';
     this.hud.banner(text);
     this.hud.sync(this);
   }
@@ -248,7 +252,7 @@ export class Game {
     this.scene.add(mesh);
     const hp = Math.round((t.hpBase + this.wave * t.hpPerWave) * (t.boss ? 1 + (bossIndex - 1) * 0.35 : 1));
     const dmg = Math.round(t.dmg * (t.boss ? 1 + (bossIndex - 1) * 0.25 : 1));
-    this.enemies.push({ mesh, hp, speed: t.speed, dmg, bounty: t.bounty, boss: !!t.boss, float: !!t.float });
+    this.enemies.push({ mesh, hp, speed: t.speed, dmg, bounty: t.bounty, boss: !!t.boss, float: !!t.float, slowT: 0 });
   }
 
   placeTower(slot) {
@@ -272,26 +276,48 @@ export class Game {
     tower.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     tower.position.copy(slot.position);
     this.scene.add(tower);
+    // Basiswerte; Perk-Multiplikatoren werden zur Schusszeit angewandt (wirkt auch auf alte Tuerme)
     this.towers.push({ mesh: tower, head, cool: 0, range: 7.5, dmg: 4, rate: 0.75 });
     this.hud.sync(this);
     return true;
   }
 
+  // Gibt true zurueck, wenn der Gegner den Treffer ueberlebt hat.
   damageEnemy(enemy, dmg) {
     enemy.hp -= dmg;
     if (enemy.hp <= 0) {
-      this.energy += enemy.bounty;
+      this.energy += enemy.bounty * this.perk.bountyMul;
       const i = this.enemies.indexOf(enemy);
       if (i >= 0) this.enemies.splice(i, 1);
       this.scene.remove(enemy.mesh);
       this.hud.sync(this);
+      return false;
     }
+    return true;
   }
 
   removeEnemy(enemy) {
     const i = this.enemies.indexOf(enemy);
     if (i >= 0) this.enemies.splice(i, 1);
     this.scene.remove(enemy.mesh);
+  }
+
+  // --- Roguelite-Perks: alle 5 Wellen eine Stärke (1 aus 3) ---
+  openPerkChoice() {
+    this.state = 'perk';
+    this.hud.setState(this.state);
+    this.hud.showPerks(rollPerkOptions(this.chosenPerks), (perk) => this.pickPerk(perk));
+  }
+
+  pickPerk(perk) {
+    perk.apply(this);
+    this.chosenPerks.push(perk.id);
+    this.state = 'running';
+    this.interWaveTimer = Math.max(this.interWaveTimer, 3);
+    this.hud.hidePerks();
+    this.hud.setState(this.state);
+    this.hud.banner('Staerke erwacht: ' + perk.name + ' (' + this.chosenPerks.length + '. Perk)', 2600);
+    this.hud.sync(this);
   }
 
   update(dtRaw) {
@@ -308,10 +334,14 @@ export class Game {
       } else if (this.enemies.length === 0) {
         if (!this.waveCleared) {
           this.waveCleared = true;
-          const reward = 12 + Math.floor(this.wave / 2);
+          const reward = 12 + Math.floor(this.wave / 2) + this.perk.waveBonus;
           this.energy += reward;
           this.hud.banner('Welle ' + this.wave + ' geschafft (+' + reward + ' Energie)');
           this.hud.sync(this);
+          // Roguelite: Nach jeder 5. Welle oeffnet sich die Staerken-Wahl (1 aus 3)
+          if (this.wave % 5 === 0 && this.wave < MAX_WAVES) {
+            this.openPerkChoice();
+          }
         }
         this.interWaveTimer -= dt;
         if (this.interWaveTimer <= 0) {
@@ -335,7 +365,13 @@ export class Game {
           continue;
         }
         dir.normalize();
-        enemy.mesh.position.addScaledVector(dir, enemy.speed * dt * (enemy.boss ? 1 : 1));
+        // Frosthauch-Perk: kurzzeitig verlangsamte Gegner
+        if (enemy.slowT > 0) {
+          enemy.slowT -= dt;
+          enemy.mesh.position.addScaledVector(dir, enemy.speed * dt * (1 - this.perk.slow));
+        } else {
+          enemy.mesh.position.addScaledVector(dir, enemy.speed * dt);
+        }
       }
       if (reached.length > 0) {
         for (const enemy of reached) {
@@ -354,23 +390,27 @@ export class Game {
       for (const tower of this.towers) {
         tower.cool -= dt;
         if (tower.cool > 0) continue;
+        const range = tower.range * this.perk.rangeMul;
         let target = null;
         let best = Infinity;
         for (const enemy of this.enemies) {
           const d = tower.mesh.position.distanceTo(enemy.mesh.position);
-          if (d <= tower.range && d < best) { best = d; target = enemy; }
+          if (d <= range && d < best) { best = d; target = enemy; }
         }
         if (!target) continue;
-        tower.cool = tower.rate;
+        tower.cool = tower.rate / this.perk.rateMul;
         tower.head.lookAt(target.mesh.position);
+        let dmg = tower.dmg * this.perk.dmgMul;
+        let crit = false;
+        if (Math.random() < this.perk.crit) { dmg *= 2; crit = true; }
         const proj = new THREE.Mesh(
-          new THREE.SphereGeometry(0.16, 8, 8),
-          new THREE.MeshBasicMaterial({ color: 0x9cc4ff })
+          new THREE.SphereGeometry(crit ? 0.24 : 0.16, 8, 8),
+          new THREE.MeshBasicMaterial({ color: crit ? 0xffd76a : 0x9cc4ff })
         );
         proj.position.copy(tower.mesh.position);
         proj.position.y = 2.0;
         this.scene.add(proj);
-        this.projectiles.push({ mesh: proj, target, speed: 16, dmg: tower.dmg });
+        this.projectiles.push({ mesh: proj, target, speed: 16, dmg });
       }
 
       // Projektile fliegen (homing)
@@ -383,7 +423,25 @@ export class Game {
         const dir = proj.target.mesh.position.clone().sub(proj.mesh.position);
         const step = proj.speed * dt;
         if (dir.length() <= step || dir.length() < 0.3) {
+          const hitPos = proj.target.mesh.position.clone();
           this.damageEnemy(proj.target, proj.dmg);
+          // Sprengbolzen-Perk: Flaechenschaden um den Trefferpunkt
+          if (this.perk.splash) {
+            for (const other of this.enemies.slice()) {
+              if (other !== proj.target && other.mesh.position.distanceTo(hitPos) <= this.perk.splashRadius) {
+                this.damageEnemy(other, proj.dmg * 0.5);
+              }
+            }
+          }
+          // Frosthauch-Perk: Gegner im Umkreis werden verlangsamt
+          if (this.perk.slow > 0) {
+            const slowRadius = this.perk.splashRadius > 0 ? this.perk.splashRadius : 1.4;
+            for (const other of this.enemies.slice()) {
+              if (other.mesh.position.distanceTo(hitPos) <= slowRadius) {
+                other.slowT = this.perk.slowDur;
+              }
+            }
+          }
           this.scene.remove(proj.mesh);
           this.projectiles.splice(this.projectiles.indexOf(proj), 1);
         } else {
