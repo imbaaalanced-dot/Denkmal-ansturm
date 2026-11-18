@@ -16,7 +16,7 @@ export const PERK_POOL = [
     apply(g) { g.hp = Math.min(g.maxHp, g.hp + 120); } },
   { id: 'frost', icon: '❄️', name: 'Frosthauch', desc: 'Treffer verlangsamen Gegner im Umkreis 2 s (−25 % Tempo)', max: 2,
     apply(g) { g.perk.slow = Math.min(0.45, g.perk.slow + 0.25); g.perk.slowDur = 2; } },
-  { id: 'splash', icon: '💥', name: 'Sprengbolzen', desc: 'Treffer Wirken auf alle Gegner im Umkreis (Radius wächst)', max: 2,
+  { id: 'splash', icon: '💥', name: 'Sprengbolzen', desc: 'Treffer wirken auf alle Gegner im Umkreis (Radius wächst)', max: 2,
     apply(g) { g.perk.splash = true; g.perk.splashRadius += 1.3; } },
   { id: 'krit', icon: '🎯', name: 'Schwachstelle', desc: '+20 % Chance auf doppelten Schaden', max: 2,
     apply(g) { g.perk.crit += 0.2; } },
