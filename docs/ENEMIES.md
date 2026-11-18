@@ -20,3 +20,15 @@ Zusaetzlich: ab Boss-Welle 40 erscheinen zwei Drachen.
 - [ ] Geist-Spezial: langsamturm-spezial?
 - [ ] Drachen-Flugphase (schwebt hoeher, nur von bestimmten Tuermen treffbar)
 - [ ] Fertige 3D-Modelle statt Platzhalter (pipeline analog zu ASSET-PIPELINE.md)
+
+
+## Sprite-Einbindung (Marcels Illustrationen)
+
+Seit dem Sprite-Commit nutzt `buildEnemyMesh` automatisch die Original-Illustrationen aus
+`assets/enemies/<typ>.png` (Dateinamen-Tabelle in `assets/enemies/README.md`):
+
+- Laden Asynchron via TextureLoader; bis zum Ende der Verarbeitung bleibt der 3D-Platzhalter sichtbar.
+- Einfarbige Hintergründe werden per Eckfarben-Keying (Toleranz 70) zur Laufzeit transparent geschaltet; transparente PNGs funktionieren direkt.
+- Fehlt eine Datei (404), bleibt der Platzhalter dauerhaft aktiv, das Spiel bricht niemals ab.
+- Bosse behalten ihr Wellen-Wachstum (Gruppe skaliert, Sprite skaliert mit).
+- Sprites werfen keine Schatten (Billboards) - ein Boden-Schattenblob ist ein späterer Polierauftrag.

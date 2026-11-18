@@ -22,15 +22,94 @@ const featherMat = new THREE.MeshStandardMaterial({ color: 0xc03030, roughness: 
 
 // Werte = Platzhalter-Balancing (wird pro Level ausbalanciert, docs/ARCHITECTURE.md).
 export const ENEMY_TYPES = {
-  skelett: { name: 'Skelett-Soldat',    hpBase: 6,  hpPerWave: 0.6, speed: 1.5, dmg: 6,  bounty: 2,  scale: 1.0 },
-  pirat:   { name: 'Skelett-Pirat',     hpBase: 4,  hpPerWave: 0.5, speed: 2.2, dmg: 5,  bounty: 2,  scale: 0.95 },
-  geist:   { name: 'Nebel-Geist',       hpBase: 3,  hpPerWave: 0.4, speed: 2.6, dmg: 4,  bounty: 3,  scale: 1.0, float: true },
-  ritter:  { name: 'Ritter (Schwert)',  hpBase: 12, hpPerWave: 0.9, speed: 1.3, dmg: 9,  bounty: 3,  scale: 1.15 },
-  krieger: { name: 'Axt-Krieger',       hpBase: 10, hpPerWave: 0.8, speed: 1.8, dmg: 12, bounty: 4,  scale: 1.1 },
-  hammer:  { name: 'Ritter (Hammer)',   hpBase: 22, hpPerWave: 1.4, speed: 0.9, dmg: 18, bounty: 6,  scale: 1.35 },
-  golem:   { name: 'Felsen-Golem',      hpBase: 40, hpPerWave: 2.5, speed: 0.7, dmg: 20, bounty: 10, scale: 1.55 },
-  drache:  { name: 'Mech-Drache (Boss)', hpBase: 70, hpPerWave: 5.0, speed: 0.8, dmg: 40, bounty: 25, scale: 2.0, boss: true },
+  skelett: { name: 'Skelett-Soldat',    hpBase: 6,  hpPerWave: 0.6, speed: 1.5, dmg: 6,  bounty: 2,  scale: 1.0,
+             sprite: 'assets/enemies/skelett.png', spriteH: 1.9 },
+  pirat:   { name: 'Skelett-Pirat',     hpBase: 4,  hpPerWave: 0.5, speed: 2.2, dmg: 5,  bounty: 2,  scale: 0.95,
+             sprite: 'assets/enemies/pirat.png', spriteH: 1.9 },
+  geist:   { name: 'Nebel-Geist',       hpBase: 3,  hpPerWave: 0.4, speed: 2.6, dmg: 4,  bounty: 3,  scale: 1.0, float: true,
+             sprite: 'assets/enemies/geist.png', spriteH: 2.1 },
+  ritter:  { name: 'Ritter (Schwert)',  hpBase: 12, hpPerWave: 0.9, speed: 1.3, dmg: 9,  bounty: 3,  scale: 1.15,
+             sprite: 'assets/enemies/ritter.png', spriteH: 2.2 },
+  krieger: { name: 'Axt-Krieger',       hpBase: 10, hpPerWave: 0.8, speed: 1.8, dmg: 12, bounty: 4,  scale: 1.1,
+             sprite: 'assets/enemies/krieger.png', spriteH: 2.2 },
+  hammer:  { name: 'Ritter (Hammer)',   hpBase: 22, hpPerWave: 1.4, speed: 0.9, dmg: 18, bounty: 6,  scale: 1.35,
+             sprite: 'assets/enemies/hammer.png', spriteH: 2.5 },
+  golem:   { name: 'Felsen-Golem',      hpBase: 40, hpPerWave: 2.5, speed: 0.7, dmg: 20, bounty: 10, scale: 1.55,
+             sprite: 'assets/enemies/golem.png', spriteH: 2.9 },
+  drache:  { name: 'Mech-Drache (Boss)', hpBase: 70, hpPerWave: 5.0, speed: 0.8, dmg: 40, bounty: 25, scale: 2.0, boss: true,
+             sprite: 'assets/enemies/drache.png', spriteH: 3.8 },
 };
+
+// --- Sprite-System: Marcels Illustrationen als Gegner (Fallback: 3D-Platzhalter) ---
+// Assets: assets/enemies/<typ>.png (siehe Ordner-README dort).
+// Der Bild-Hintergrund wird per Eckfarben-Keying automatisch transparent geschaltet,
+// fehlt eine Datei, bleibt der 3D-Platzhalter einfach stehen (niemals ein Bruch).
+const spriteCache = new Map();
+const spriteLoader = new THREE.TextureLoader();
+
+function makeTransparent(image) {
+  const w = image.width;
+  const h = image.height;
+  const canvas = document.createElement('canvas');
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(image, 0, 0);
+  const data = ctx.getImageData(0, 0, w, h);
+  const px = data.data;
+  // Eckfarben = vermutlicher Hintergrund
+  const corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + (w - 1)) * 4];
+  let r = 0, g = 0, b = 0;
+  for (const c of corners) { r += px[c]; g += px[c + 1]; b += px[c + 2]; }
+  r /= corners.length; g /= corners.length; b /= corners.length;
+  const TOL = 70;
+  for (let i = 0; i < px.length; i += 4) {
+    const dr = px[i] - r, dg = px[i + 1] - g, db = px[i + 2] - b;
+    if (dr * dr + dg * dg + db * db < TOL * TOL) px[i + 3] = 0;
+  }
+  ctx.putImageData(data, 0, 0);
+  return canvas;
+}
+
+function attachSprite(texture, t, group) {
+  const img = texture.image;
+  const aspect = img.width > 0 && img.height > 0 ? img.width / img.height : 1;
+  while (group.children.length > 0) group.remove(group.children[0]);
+  const sprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: texture, transparent: true, alphaTest: 0.06 })
+  );
+  sprite.center.set(0.5, 0); // Illustration steht auf dem Boden
+  const h = t.spriteH || 2.0;
+  sprite.scale.set(h * aspect, h, 1);
+  group.add(sprite);
+}
+
+function applySprite(typeKey, group) {
+  const t = ENEMY_TYPES[typeKey];
+  if (!t || !t.sprite) return;
+  if (spriteCache.has(typeKey)) {
+    const cached = spriteCache.get(typeKey);
+    if (cached) attachSprite(cached, t, group);
+    return; // laedt noch oder fehlt: Platzhalter bleibt
+  }
+  spriteCache.set(typeKey, null); // verhindert Doppelladen
+  spriteLoader.load(
+    t.sprite,
+    (texture) => {
+      try {
+        const canvas = makeTransparent(texture.image);
+        const canvasTexture = new THREE.CanvasTexture(canvas);
+        canvasTexture.colorSpace = THREE.SRGBColorSpace;
+        spriteCache.set(typeKey, canvasTexture);
+        attachSprite(canvasTexture, t, group);
+      } catch (err) {
+        // Verarbeitung fehlgeschlagen: Platzhalter bleibt
+      }
+    },
+    undefined,
+    () => { /* Datei fehlt: Platzhalter bleibt, kein Fehler */ }
+  );
+}
 
 function skeletonBase() {
   const g = new THREE.Group();
@@ -172,5 +251,7 @@ export function buildEnemyMesh(typeKey) {
       g.add(schild, klinge);
     }
   }
+  // Illustration als Sprite nachladen (bis dahin bleibt dieser 3D-Platzhalter sichtbar)
+  applySprite(typeKey, g);
   return g;
 }
