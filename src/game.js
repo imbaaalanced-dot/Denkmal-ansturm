@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { generateWave, MAX_WAVES } from './wavedata.js';
+import { createGroundTexture, buildGravestones } from './ground.js';
 
 // Level L01 - Ender Dorfkirche:
 // Verteidigungsziel ist der LOEWE auf dem Kriegerdenkmal (Zentrum der Arena).
@@ -115,9 +116,10 @@ function spawnAngle() {
 }
 
 export function buildWorld(scene) {
+  // Boden mit prozeduraler Kirchhof-Textur (Rasen, Pflasterplatz, Laub, Vignette)
   const ground = new THREE.Mesh(
     new THREE.CircleGeometry(21, 72),
-    new THREE.MeshStandardMaterial({ color: 0x1a222c, roughness: 1.0 })
+    new THREE.MeshStandardMaterial({ map: createGroundTexture(1024, 21), roughness: 0.95 })
   );
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
@@ -141,6 +143,9 @@ export function buildWorld(scene) {
   const church = buildChurch();
   church.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   scene.add(church);
+
+  // Grabsteine als Kirchhof-Kulisse im Aussenring
+  buildGravestones(scene, CHURCH_ANGLE, CHURCH_WEDGE);
 
   // Wachterfunke ueber dem Loewen (leuchtet, dreht sich)
   const crystal = new THREE.Mesh(
