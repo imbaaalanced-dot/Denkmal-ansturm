@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500">
+  <defs>
+    <linearGradient id="knochen" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e6dfca"/>
+      <stop offset="0.5" stop-color="#c9c1a8"/>
+      <stop offset="1" stop-color="#9a927c"/>
+    </linearGradient>
+    <linearGradient id="knochenDunkel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a8a08a"/>
+      <stop offset="1" stop-color="#6e6752"/>
+    </linearGradient>
+    <linearGradient id="grabstein" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a544c"/>
+      <stop offset="1" stop-color="#33302b"/>
+    </linearGradient>
+    <radialGradient id="kolossGold" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe89a"/>
+      <stop offset="0.4" stop-color="#ffb84a"/>
+      <stop offset="1" stop-color="#8a5210" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <path d="M136 200 C 108 210 88 236 80 268 C 74 294 78 318 90 338 L 104 330 C 96 308 94 284 100 260 C 108 236 122 220 142 212 Z" fill="url(#knochenDunkel)"/>
+  <path d="M264 200 C 292 210 312 236 320 268 C 326 294 322 318 310 338 L 296 330 C 304 308 306 284 300 260 C 292 236 278 220 258 212 Z" fill="url(#knochenDunkel)"/>
+  <rect x="72" y="332" width="44" height="60" rx="8" fill="url(#grabstein)"/>
+  <rect x="284" y="332" width="44" height="60" rx="8" fill="url(#grabstein)"/>
+  <rect x="78" y="344" width="32" height="4" rx="2" fill="#ffd76a" opacity="0.5"/>
+  <rect x="290" y="344" width="32" height="4" rx="2" fill="#ffd76a" opacity="0.5"/>
+  <path d="M150 300 L 118 420 L 142 420 L 168 306 Z" fill="url(#knochenDunkel)"/>
+  <path d="M250 300 L 282 420 L 258 420 L 232 306 Z" fill="url(#knochenDunkel)"/>
+  <ellipse cx="126" cy="420" rx="26" ry="16" fill="url(#knochen)"/>
+  <ellipse cx="274" cy="420" rx="26" ry="16" fill="url(#knochen)"/>
+  <path d="M112 420 L 88 444 L 116 446 L 104 460 L 130 452 L 140 428 Z" fill="url(#knochen)"/>
+  <path d="M288 420 L 312 444 L 284 446 L 296 460 L 270 452 L 260 428 Z" fill="url(#knochen)"/>
+  <rect x="140" y="268" width="120" height="44" rx="8" fill="url(#grabstein)"/>
+  <rect x="132" y="282" width="136" height="18" rx="6" fill="#23211d"/>
+  <rect x="192" y="180" width="16" height="96" rx="7" fill="url(#knochenDunkel)"/>
+  <circle cx="200" cy="196" r="10" fill="url(#knochen)"/>
+  <circle cx="200" cy="222" r="10" fill="url(#knochen)"/>
+  <circle cx="200" cy="248" r="10" fill="url(#knochen)"/>
+  <circle cx="200" cy="274" r="10" fill="url(#knochen)"/>
+  <rect x="192" y="208" width="16" height="3" fill="#ffb84a" opacity="0.8"/>
+  <rect x="192" y="236" width="16" height="3" fill="#ffb84a" opacity="0.7"/>
+  <path d="M136 212 C 130 254 146 288 200 292 C 254 288 270 254 264 212 C 252 168 232 152 200 152 C 168 152 148 168 136 212 Z" fill="url(#knochen)"/>
+  <path d="M200 292 C 154 288 138 256 142 214 C 150 184 166 168 200 164" fill="none" stroke="#8a8270" stroke-width="5" opacity="0.5"/>
+  <path d="M200 292 C 246 288 262 256 258 214 C 250 184 234 168 200 164" fill="none" stroke="#8a8270" stroke-width="5" opacity="0.5"/>
+  <path d="M158 220 C 174 210 192 208 206 214" fill="none" stroke="#8a8270" stroke-width="4" opacity="0.4"/>
+  <path d="M162 244 C 176 236 190 234 202 240" fill="none" stroke="#8a8270" stroke-width="4" opacity="0.4"/>
+  <path d="M200 66 C 170 66 152 86 152 116 C 152 146 168 166 200 168 C 232 166 248 146 248 116 C 248 86 230 66 200 66 Z" fill="url(#knochen)"/>
+  <rect x="162" y="140" width="76" height="26" rx="10" fill="url(#knochenDunkel)"/>
+  <path d="M170 150 L 176 162 L 184 150 L 192 162 L 200 150 L 208 162 L 216 150 L 224 162 L 232 150" fill="none" stroke="#6e6752" stroke-width="3"/>
+  <ellipse cx="180" cy="118" rx="16" ry="13" fill="#221c12"/>
+  <ellipse cx="220" cy="118" rx="16" ry="13" fill="#221c12"/>
+  <ellipse cx="180" cy="118" rx="9" ry="7" fill="url(#kolossGold)"/>
+  <ellipse cx="220" cy="118" rx="9" ry="7" fill="url(#kolossGold)"/>
+  <circle cx="126" cy="296" r="12" fill="url(#kolossGold)"/>
+  <circle cx="274" cy="296" r="12" fill="url(#kolossGold)"/>
+  <circle cx="136" cy="204" r="10" fill="url(#kolossGold)"/>
+  <circle cx="264" cy="204" r="10" fill="url(#kolossGold)"/>
+  <ellipse cx="140" cy="192" rx="30" ry="18" fill="url(#knochen)"/>
+  <ellipse cx="260" cy="192" rx="30" ry="18" fill="url(#knochen)"/>
+  <ellipse cx="140" cy="192" rx="14" ry="8" fill="url(#kolossGold)"/>
+  <ellipse cx="260" cy="192" rx="14" ry="8" fill="url(#kolossGold)"/>
+  <path d="M80 240 C 72 280 78 320 96 348" fill="none" stroke="#c9382a" stroke-width="2.5" opacity="0.45"/>
+  <path d="M320 240 C 328 280 322 320 304 348" fill="none" stroke="#c9382a" stroke-width="2.5" opacity="0.45"/>
+  <path d="M152 100 C 160 78 178 68 200 68" fill="none" stroke="#c9382a" stroke-width="2.5" opacity="0.45"/>
+</svg>

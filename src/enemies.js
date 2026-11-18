@@ -19,25 +19,36 @@ const dragonMat = new THREE.MeshStandardMaterial({ color: 0x3a4652, roughness: 0
 const dragonGlowMat = new THREE.MeshStandardMaterial({ color: 0xff6a2a, emissive: 0xd23a10, emissiveIntensity: 1.2 });
 const hatMat = new THREE.MeshStandardMaterial({ color: 0x1e2026, roughness: 0.85 });
 const featherMat = new THREE.MeshStandardMaterial({ color: 0xc03030, roughness: 0.8 });
+const shadowBodyMat = new THREE.MeshStandardMaterial({ color: 0x151021, roughness: 0.95 });
+const emberEyeMat = new THREE.MeshStandardMaterial({ color: 0x601414, emissive: 0xd7261a, emissiveIntensity: 1.4 });
+const stoneGreyMat = new THREE.MeshStandardMaterial({ color: 0x6f675c, roughness: 0.95 });
+const stoneDarkMat = new THREE.MeshStandardMaterial({ color: 0x4a443c, roughness: 0.95 });
+const goldRuneMat = new THREE.MeshStandardMaterial({ color: 0xffca4a, emissive: 0xc2761d, emissiveIntensity: 0.9 });
 
 // Werte = Platzhalter-Balancing (wird pro Level ausbalanciert, docs/ARCHITECTURE.md).
 export const ENEMY_TYPES = {
   skelett: { name: 'Skelett-Soldat',    hpBase: 6,  hpPerWave: 0.6, speed: 1.5, dmg: 6,  bounty: 2,  scale: 1.0,
-             sprite: 'assets/enemies/skelett.png', spriteH: 1.9 },
+             sprites: ['assets/enemies/skelett.png'], spriteH: 1.9 },
+  schattenwolf: { name: 'Schattenwolf', hpBase: 5,  hpPerWave: 0.5, speed: 3.2, dmg: 5,  bounty: 2,  scale: 0.9,
+             sprites: ['assets/enemies/schattenwolf.png', 'assets/enemies/schattenwolf.svg'], spriteH: 1.6 },
   pirat:   { name: 'Skelett-Pirat',     hpBase: 4,  hpPerWave: 0.5, speed: 2.2, dmg: 5,  bounty: 2,  scale: 0.95,
-             sprite: 'assets/enemies/pirat.png', spriteH: 1.9 },
-  geist:   { name: 'Nebel-Geist',       hpBase: 3,  hpPerWave: 0.4, speed: 2.6, dmg: 4,  bounty: 3,  scale: 1.0, float: true,
-             sprite: 'assets/enemies/geist.png', spriteH: 2.1 },
+             sprites: ['assets/enemies/pirat.png'], spriteH: 1.9 },
+  gargoyle: { name: 'Gargoyle',         hpBase: 9,  hpPerWave: 0.8, speed: 1.9, dmg: 9,  bounty: 4,  scale: 1.2, float: true,
+             sprites: ['assets/enemies/gargoyle.png', 'assets/enemies/gargoyle.svg'], spriteH: 2.0 },
   ritter:  { name: 'Ritter (Schwert)',  hpBase: 12, hpPerWave: 0.9, speed: 1.3, dmg: 9,  bounty: 3,  scale: 1.15,
-             sprite: 'assets/enemies/ritter.png', spriteH: 2.2 },
+             sprites: ['assets/enemies/ritter.png'], spriteH: 2.2 },
+  geist:   { name: 'Nebel-Geist',       hpBase: 3,  hpPerWave: 0.4, speed: 2.6, dmg: 4,  bounty: 3,  scale: 1.0, float: true,
+             sprites: ['assets/enemies/geist.png'], spriteH: 2.1 },
   krieger: { name: 'Axt-Krieger',       hpBase: 10, hpPerWave: 0.8, speed: 1.8, dmg: 12, bounty: 4,  scale: 1.1,
-             sprite: 'assets/enemies/krieger.png', spriteH: 2.2 },
+             sprites: ['assets/enemies/krieger.png'], spriteH: 2.2 },
   hammer:  { name: 'Ritter (Hammer)',   hpBase: 22, hpPerWave: 1.4, speed: 0.9, dmg: 18, bounty: 6,  scale: 1.35,
-             sprite: 'assets/enemies/hammer.png', spriteH: 2.5 },
+             sprites: ['assets/enemies/hammer.png'], spriteH: 2.5 },
   golem:   { name: 'Felsen-Golem',      hpBase: 40, hpPerWave: 2.5, speed: 0.7, dmg: 20, bounty: 10, scale: 1.55,
-             sprite: 'assets/enemies/golem.png', spriteH: 2.9 },
+             sprites: ['assets/enemies/golem.png'], spriteH: 2.9 },
+  knochenkoloss: { name: 'Knochenkoloss', hpBase: 55, hpPerWave: 3.2, speed: 0.55, dmg: 28, bounty: 15, scale: 1.8,
+             sprites: ['assets/enemies/knochenkoloss.png', 'assets/enemies/knochenkoloss.svg'], spriteH: 3.4 },
   drache:  { name: 'Mech-Drache (Boss)', hpBase: 70, hpPerWave: 5.0, speed: 0.8, dmg: 40, bounty: 25, scale: 2.0, boss: true,
-             sprite: 'assets/enemies/drache.png', spriteH: 3.8 },
+             sprites: ['assets/enemies/drache.png'], spriteH: 3.8 },
 };
 
 // --- Sprite-System: Marcels Illustrationen als Gegner (Fallback: 3D-Platzhalter) ---
@@ -59,6 +70,9 @@ function makeTransparent(image) {
   const px = data.data;
   // Eckfarben = vermutlicher Hintergrund
   const corners = [0, (w - 1) * 4, (h - 1) * w * 4, ((h - 1) * w + (w - 1)) * 4];
+  // Bild mit transparenten Ecken (PNG/SVH)? Kein Keying noetig, sonst wuerde es
+  // near-schwarzen Pixeln (z.B. den Schattenwolf) den Koerper wegnehmen.
+  if (corners.some((c) => px[c + 3] < 10)) return canvas;
   let r = 0, g = 0, b = 0;
   for (const c of corners) { r += px[c]; g += px[c + 1]; b += px[c + 2]; }
   r /= corners.length; g /= corners.length; b /= corners.length;
@@ -86,29 +100,37 @@ function attachSprite(texture, t, group) {
 
 function applySprite(typeKey, group) {
   const t = ENEMY_TYPES[typeKey];
-  if (!t || !t.sprite) return;
-  if (spriteCache.has(typeKey)) {
-    const cached = spriteCache.get(typeKey);
-    if (cached) attachSprite(cached, t, group);
-    return; // laedt noch oder fehlt: Platzhalter bleibt
+  const list = t && t.sprites && t.sprites.length > 0 ? t.sprites : (t && t.sprite ? [t.sprite] : []);
+  if (list.length === 0) return;
+  trySource(0);
+  function trySource(i) {
+    if (i >= list.length) return; // keine Quelle verfuegbar: 3D-Platzhalter bleibt
+    const url = list[i];
+    if (spriteCache.has(url)) {
+      const cached = spriteCache.get(url);
+      if (cached) attachSprite(cached, t, group);
+      else trySource(i + 1);
+      return;
+    }
+    spriteCache.set(url, null); // kennzeichnet 'laedt gerade'
+    spriteLoader.load(
+      url,
+      (texture) => {
+        try {
+          const canvas = makeTransparent(texture.image);
+          const canvasTexture = new THREE.CanvasTexture(canvas);
+          canvasTexture.colorSpace = THREE.SRGBColorSpace;
+          spriteCache.set(url, canvasTexture);
+          attachSprite(canvasTexture, t, group);
+        } catch (err) {
+          spriteCache.set(url, null);
+          // Verarbeitung fehlgeschlagen: Platzhalter bleibt
+        }
+      },
+      undefined,
+      () => { spriteCache.set(url, null); trySource(i + 1); }
+    );
   }
-  spriteCache.set(typeKey, null); // verhindert Doppelladen
-  spriteLoader.load(
-    t.sprite,
-    (texture) => {
-      try {
-        const canvas = makeTransparent(texture.image);
-        const canvasTexture = new THREE.CanvasTexture(canvas);
-        canvasTexture.colorSpace = THREE.SRGBColorSpace;
-        spriteCache.set(typeKey, canvasTexture);
-        attachSprite(canvasTexture, t, group);
-      } catch (err) {
-        // Verarbeitung fehlgeschlagen: Platzhalter bleibt
-      }
-    },
-    undefined,
-    () => { /* Datei fehlt: Platzhalter bleibt, kein Fehler */ }
-  );
 }
 
 function skeletonBase() {
@@ -239,6 +261,102 @@ export function buildEnemyMesh(typeKey) {
       const glutBrust = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 8), dragonGlowMat);
       glutBrust.position.set(0.25, 1.2, 0.38);
       g.add(body, hals, kopf, augeL, augeR, fluegelL, fluegelR, schwanz, glutBrust);
+      break;
+    }
+    case 'schattenwolf': {
+      g = new THREE.Group();
+      const leib = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.62, 6, 10), shadowBodyMat);
+      leib.rotation.z = Math.PI / 2;
+      leib.position.y = 0.55;
+      const kopfW = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.34, 8), shadowBodyMat);
+      kopfW.rotation.z = -Math.PI / 2;
+      kopfW.position.set(0.52, 0.66, 0);
+      const rachen = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.06, 0.1), emberEyeMat);
+      rachen.position.set(0.68, 0.62, 0);
+      const ohrL = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.16, 6), shadowBodyMat);
+      ohrL.position.set(0.44, 0.84, 0.08);
+      const ohrR = ohrL.clone();
+      ohrR.position.z = -0.08;
+      const augenL = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), emberEyeMat);
+      augenL.position.set(0.6, 0.7, 0.07);
+      const augenR = augenL.clone();
+      augenR.position.z = -0.07;
+      const runeW = new THREE.Mesh(new THREE.OctahedronGeometry(0.06), goldRuneMat);
+      runeW.position.set(0.05, 0.72, 0);
+      const schwanz = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.5, 6), shadowBodyMat);
+      schwanz.rotation.z = 1.9;
+      schwanz.position.set(-0.52, 0.62, 0);
+      const beine = [];
+      for (let i = 0; i < 4; i++) {
+        const bein = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.04, 0.42, 6), shadowBodyMat);
+        bein.position.set(i % 2 === 0 ? 0.28 : -0.28, 0.24, i < 2 ? 0.16 : -0.16);
+        beine.push(bein);
+      }
+      g.add(leib, kopfW, rachen, ohrL, ohrR, augenL, augenR, runeW, schwanz);
+      g.add(...beine);
+      break;
+    }
+    case 'gargoyle': {
+      g = new THREE.Group();
+      const torsoG = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.6, 0.3), stoneGreyMat);
+      torsoG.position.y = 0.9;
+      const rissG = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.34, 0.05), goldRuneMat);
+      rissG.position.set(0, 0.92, 0.16);
+      const kopfG = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.24, 0.28), stoneGreyMat);
+      kopfG.position.y = 1.34;
+      const kieferG = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.08, 0.2), stoneDarkMat);
+      kieferG.position.set(0.03, 1.2, 0);
+      const hornL = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.24, 6), stoneDarkMat);
+      hornL.position.set(-0.1, 1.54, 0.06);
+      const hornR = hornL.clone();
+      hornR.position.z = -0.06;
+      const augeGL = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), emberEyeMat);
+      augeGL.position.set(0.06, 1.38, 0.09);
+      const augeGR = augeGL.clone();
+      augeGR.position.z = -0.09;
+      const flgL = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.05, 0.5), stoneDarkMat);
+      flgL.position.set(0, 1.15, -0.5);
+      flgL.rotation.y = 0.5;
+      const flgR = flgL.clone();
+      flgR.position.z = 0.5;
+      flgR.rotation.y = -0.5;
+      const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 0.5, 6), stoneGreyMat);
+      armL.position.set(-0.28, 0.85, 0);
+      const armR = armL.clone();
+      armR.position.x = 0.28;
+      g.add(torsoG, rissG, kopfG, kieferG, hornL, hornR, augeGL, augeGR, flgL, flgR, armL, armR);
+      break;
+    }
+    case 'knochenkoloss': {
+      g = new THREE.Group();
+      const beinL = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 0.85, 8), boneMat);
+      beinL.position.set(-0.24, 0.42, 0);
+      const beinR = beinL.clone();
+      beinR.position.x = 0.24;
+      const torusB = new THREE.Mesh(new THREE.SphereGeometry(0.52, 10, 8), boneMat);
+      torusB.scale.set(1, 0.9, 0.78);
+      torusB.position.y = 1.55;
+      const schaedelK = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.42, 0.42), boneMat);
+      schaedelK.position.y = 2.3;
+      const augeKL = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), goldRuneMat);
+      augeKL.position.set(-0.11, 2.32, 0.2);
+      const augeKR = augeKL.clone();
+      augeKR.position.x = 0.11;
+      const armL2 = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 1.1, 6), boneMat);
+      armL2.position.set(-0.66, 1.5, 0);
+      armL2.rotation.z = 0.18;
+      const armR2 = armL2.clone();
+      armR2.position.x = 0.66;
+      armR2.rotation.z = -0.18;
+      const steinL = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.46, 0.2), darkStoneMat);
+      steinL.position.set(-0.72, 0.82, 0.1);
+      const steinR = steinL.clone();
+      steinR.position.x = 0.72;
+      const fugL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.5, 0.04), goldRuneMat);
+      fugL.position.set(-0.72, 1.0, 0.22);
+      const fugR = fugL.clone();
+      fugR.position.x = 0.72;
+      g.add(beinL, beinR, torusB, schaedelK, augeKL, augeKR, armL2, armR2, steinL, steinR, fugL, fugR);
       break;
     }
     default: {

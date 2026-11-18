@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500">
+  <defs>
+    <linearGradient id="gargSkin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8d8478"/>
+      <stop offset="0.5" stop-color="#5f584e"/>
+      <stop offset="1" stop-color="#37322b"/>
+    </linearGradient>
+    <linearGradient id="gargWing" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a443c"/>
+      <stop offset="1" stop-color="#221f1a"/>
+    </linearGradient>
+    <radialGradient id="gargEmber" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffcf8a"/>
+      <stop offset="0.3" stop-color="#ff6a2a"/>
+      <stop offset="1" stop-color="#8a1400" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="gargGold" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe89a"/>
+      <stop offset="1" stop-color="#a8691d" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <path d="M196 210 C 150 120 60 70 20 60 C 60 110 84 160 88 210 C 60 190 34 180 18 178 C 56 232 100 258 150 268 Z" fill="url(#gargWing)"/>
+  <path d="M204 210 C 250 120 340 70 380 60 C 340 110 316 160 312 210 C 340 190 366 180 382 178 C 344 232 300 258 250 268 Z" fill="url(#gargWing)"/>
+  <path d="M150 268 C 120 300 96 340 84 386 C 112 352 138 320 160 300 Z" fill="#221f1a" opacity="0.8"/>
+  <path d="M250 268 C 280 300 304 340 316 386 C 288 352 262 320 240 300 Z" fill="#221f1a" opacity="0.8"/>
+  <path d="M196 210 C 140 130 70 84 24 66" fill="none" stroke="#6a6256" stroke-width="3" opacity="0.5"/>
+  <path d="M196 210 C 150 130 84 96 46 84" fill="none" stroke="#6a6256" stroke-width="2" opacity="0.4"/>
+  <path d="M204 210 C 260 130 330 84 376 66" fill="none" stroke="#6a6256" stroke-width="3" opacity="0.5"/>
+  <path d="M204 210 C 250 130 316 96 356 84" fill="none" stroke="#6a6256" stroke-width="2" opacity="0.4"/>
+  <path d="M90 212 L 160 330" stroke="#8a1400" stroke-width="2" opacity="0.28"/>
+  <path d="M310 212 L 240 330" stroke="#8a1400" stroke-width="2" opacity="0.28"/>
+  <path d="M200 200 C 166 208 150 240 152 282 C 154 322 172 346 200 352 C 228 346 246 322 248 282 C 250 240 234 208 200 200 Z" fill="url(#gargSkin)"/>
+  <circle cx="200" cy="286" r="34" fill="url(#gargGold)"/>
+  <path d="M190 250 L 196 268 L 186 282 L 198 296 L 192 314 L 206 300 L 200 284 L 212 270 L 204 252 Z" fill="none" stroke="#ffd76a" stroke-width="2.5"/>
+  <path d="M200 150 C 172 152 156 172 158 198 C 160 218 176 232 200 234 C 224 232 240 218 242 198 C 244 172 228 152 200 150 Z" fill="url(#gargSkin)"/>
+  <path d="M164 172 C 140 156 124 132 122 104 C 138 128 156 148 176 158 Z" fill="#4a443c"/>
+  <path d="M236 172 C 260 156 276 132 278 104 C 262 128 244 148 224 158 Z" fill="#4a443c"/>
+  <path d="M200 222 C 186 222 178 228 180 236 C 184 244 192 248 200 248 C 208 248 216 244 220 236 C 222 228 214 222 200 222 Z" fill="#413c34"/>
+  <path d="M182 230 L 190 237 L 198 231 L 206 237 L 214 231" fill="none" stroke="#d8d2c0" stroke-width="3"/>
+  <ellipse cx="176" cy="196" rx="16" ry="7" fill="url(#gargEmber)"/>
+  <ellipse cx="224" cy="196" rx="16" ry="7" fill="url(#gargEmber)"/>
+  <ellipse cx="176" cy="196" rx="8" ry="3.4" fill="#ffd9a0"/>
+  <ellipse cx="224" cy="196" rx="8" ry="3.4" fill="#ffd9a0"/>
+  <path d="M152 214 C 132 230 120 252 116 278 C 128 266 142 258 156 254 Z" fill="url(#gargSkin)"/>
+  <path d="M248 214 C 268 230 280 252 284 278 C 272 266 258 258 244 254 Z" fill="url(#gargSkin)"/>
+  <path d="M118 278 L 96 302 L 108 304 L 92 322 L 106 320 L 96 340 L 118 312 Z" fill="#4a443c"/>
+  <path d="M282 278 L 304 302 L 292 304 L 308 322 L 294 320 L 304 340 L 282 312 Z" fill="#4a443c"/>
+  <path d="M164 340 C 158 372 162 400 176 424 C 184 402 186 374 184 350 Z" fill="url(#gargSkin)"/>
+  <path d="M236 340 C 242 372 238 400 224 424 C 216 402 214 374 216 350 Z" fill="url(#gargSkin)"/>
+  <path d="M176 424 C 152 432 136 440 128 456 C 150 452 168 448 182 440 Z" fill="#4a443c"/>
+  <path d="M224 424 C 248 432 264 440 272 456 C 250 452 232 448 218 440 Z" fill="#4a443c"/>
+  <ellipse cx="170" cy="330" rx="14" ry="8" fill="#4f5a3a" opacity="0.5"/>
+  <ellipse cx="240" cy="318" rx="10" ry="6" fill="#4f5a3a" opacity="0.4"/>
+  <path d="M20 60 C 84 108 150 168 196 236" fill="none" stroke="#d7402a" stroke-width="2" opacity="0.35"/>
+  <path d="M380 60 C 316 108 250 168 204 236" fill="none" stroke="#d7402a" stroke-width="2" opacity="0.35"/>
+</svg>

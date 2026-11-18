@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500">
+  <defs>
+    <linearGradient id="wolfBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2a2138"/>
+      <stop offset="0.5" stop-color="#151022"/>
+      <stop offset="1" stop-color="#070510"/>
+    </linearGradient>
+    <radialGradient id="wolfEye" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffd2a0"/>
+      <stop offset="0.3" stop-color="#ff5a26"/>
+      <stop offset="1" stop-color="#8a1400" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="wolfGold" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffe89a"/>
+      <stop offset="1" stop-color="#a8691d" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <path d="M330 240 C 372 216 396 176 388 136 C 402 196 382 248 336 270 Z" fill="#100c1a"/>
+  <path d="M320 258 C 356 236 376 200 370 166 C 386 214 372 258 330 282 Z" fill="#0b0814"/>
+  <path d="M64 250 C 40 224 22 190 26 154 C 52 184 78 200 100 206 C 82 224 70 240 64 250 Z" fill="url(#wolfBody)"/>
+  <path d="M30 150 C 40 120 60 100 92 92 C 70 112 58 134 56 152 Z" fill="#161022"/>
+  <path d="M100 120 C 118 96 146 84 178 84 C 150 100 132 122 124 146 Z" fill="#120d1d"/>
+  <path d="M128 128 L 118 84 L 152 108 Z" fill="#181226"/>
+  <path d="M162 116 L 166 70 L 196 104 Z" fill="#150f22"/>
+  <path d="M96 318 C 60 268 96 150 208 138 C 272 132 330 168 344 226 C 352 262 346 306 312 322 C 268 342 210 344 158 336 C 128 332 108 328 96 318 Z" fill="url(#wolfBody)"/>
+  <path d="M96 318 C 96 318 76 300 70 268 C 88 282 100 290 112 296 C 84 282 66 240 78 200 C 100 236 124 258 150 270 C 176 200 216 158 268 150 C 238 172 214 208 202 248 C 252 250 306 266 330 302 C 292 286 252 280 216 284 C 210 306 192 322 164 328 C 136 332 112 330 96 318 Z" fill="#0b0814" opacity="0.8"/>
+  <path d="M14 186 C 6 176 4 164 10 154 C 22 168 36 176 52 180 C 36 186 22 188 14 186 Z" fill="#0d0918"/>
+  <path d="M18 170 L 8 160 L 22 158 Z" fill="#e8e2d2"/>
+  <path d="M30 162 L 20 152 L 34 152 Z" fill="#e8e2d2"/>
+  <ellipse cx="72" cy="196" rx="26" ry="18" fill="url(#wolfEye)"/>
+  <ellipse cx="112" cy="204" rx="20" ry="14" fill="url(#wolfEye)"/>
+  <ellipse cx="70" cy="196" rx="6" ry="4" fill="#fff1c0"/>
+  <ellipse cx="110" cy="204" rx="5" ry="3.5" fill="#fff1c0"/>
+  <path d="M150 320 C 140 360 138 396 150 430 C 158 400 164 360 168 332 Z" fill="#0e0a19"/>
+  <path d="M196 330 C 194 372 196 408 210 442 C 216 408 214 366 212 336 Z" fill="#0b0714"/>
+  <path d="M258 322 C 262 364 268 400 286 428 C 288 394 282 352 276 326 Z" fill="#0e0a19"/>
+  <path d="M300 310 C 310 350 320 384 340 406 C 338 372 330 336 318 312 Z" fill="#0b0714"/>
+  <circle cx="222" cy="196" r="30" fill="url(#wolfGold)"/>
+  <path d="M206 186 L 222 174 L 238 186 L 238 204 L 222 216 L 206 204 Z" fill="none" stroke="#ffd76a" stroke-width="3"/>
+  <path d="M214 198 L 230 182 M214 182 L 230 198" stroke="#ffd76a" stroke-width="3"/>
+  <ellipse cx="200" cy="120" rx="120" ry="26" fill="#3a2c4a" opacity="0.14"/>
+  <ellipse cx="240" cy="460" rx="120" ry="20" fill="#2a1c3a" opacity="0.2"/>
+  <path d="M330 320 C 360 340 356 380 330 396" stroke="#5a4066" stroke-width="3" fill="none" opacity="0.22"/>
+  <path d="M208 138 C 272 132 330 168 344 226" fill="none" stroke="#d7402a" stroke-width="2.5" opacity="0.5"/>
+  <path d="M124 146 C 132 124 150 108 174 100" fill="none" stroke="#d7402a" stroke-width="2" opacity="0.35"/>
+</svg>

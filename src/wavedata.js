@@ -23,12 +23,15 @@ export function generateWave(n) {
 
   // progressive Freischaltung des Rosters
   const pool = ['skelett'];
+  if (n >= 10) pool.push('schattenwolf');
   if (n >= 12) pool.push('pirat');
+  if (n >= 18) pool.push('gargoyle');
   if (n >= 20) pool.push('ritter');
   if (n >= 25) pool.push('geist');
   if (n >= 30) pool.push('krieger');
   if (n >= 40) pool.push('hammer');
   if (n >= 50) pool.push('golem');
+  if (n >= 65) pool.push('knochenkoloss');
 
   for (let i = 0; i < total; i++) {
     enemies.push(weightedPick(pool));

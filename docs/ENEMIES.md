@@ -32,3 +32,16 @@ Seit dem Sprite-Commit nutzt `buildEnemyMesh` automatisch die Original-Illustrat
 - Fehlt eine Datei (404), bleibt der Platzhalter dauerhaft aktiv, das Spiel bricht niemals ab.
 - Bosse behalten ihr Wellen-Wachstum (Gruppe skaliert, Sprite skaliert mit).
 - Sprites werfen keine Schatten (Billboards) - ein Boden-Schattenblob ist ein späterer Polierauftrag.
+
+
+## Neue Gegner (Wellen 10 / 18 / 65)
+
+| Gegner | ab Welle | HP | Tempo | Schaden | Kopfgeld | Besonderheit |
+|---|---|---|---|---|---|---|
+| 🐺 Schattenwolf | 10 | 5 + 0,5/W | sehr schnell (3,2) | 5 | 2 | Sprint-Störer, zwingt zu Reichweite/Tempo |
+| 🗿 Gargoyle | 18 | 9 + 0,8/W | 1,9 | 9 | 4 | schwebt (float), halb über Kopf |
+| 💀 Knochenkoloss | 65 | 55 + 3,2/W | langsam (0,55) | 28 | 15 | Elite-Tank mit Grabstein-Fäusten |
+
+Die drei Gegner sind KI-generiert (Konzeptbilder im Chat) und als SVG-Sprites committet
+(`assets/enemies/*.svg`), bis Marcels eigene Illustrationen als PNG nachgereicht werden:
+Das Spiel lädt die Kette **PNG → SVG → 3D-Platzhalter**.
