@@ -14,7 +14,7 @@ export function createHud() {
       waveChip.textContent = 'Welle ' + game.wave + '/100';
       energyChip.textContent = 'Energie ' + Math.floor(game.energy);
       hpFill.style.width = Math.max(0, (game.hp / game.maxHp) * 100) + '%';
-      hpText.textContent = 'Denkmal ' + Math.ceil(game.hp) + ' / ' + game.maxHp;
+      hpText.textContent = 'Loewe ' + Math.ceil(game.hp) + ' / ' + game.maxHp;
     },
     setState(state) {
       const labels = { ready: 'Start', running: 'Pause', paused: 'Weiter', lost: 'Neustart', won: 'Neustart' };

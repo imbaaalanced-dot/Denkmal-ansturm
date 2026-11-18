@@ -2,6 +2,8 @@
 
 **360°-Tower-Defense um echte Denkmäler** – Dark-Fantasy-Stil, Hybrid-3D im Browser (Android/WebView + Desktop). Eigenständige Neuentwicklung neben [Denkmal TD2](https://github.com/imbaaalanced-dot/a): gleicher Stil, neues Spiel, neue technische Basis.
 
+**Live-Prototyp (GitHub Pages):** https://imbaaalanced-dot.github.io/Denkmal-ansturm/
+
 ## Kern-Features
 
 - **Echte Denkmäler als Levelzentrum** – fotorealistisch per Fotogrammetrie aus realen Referenzfotos
@@ -15,15 +17,15 @@
 
 ## Startlevel (je 100 Wellen)
 
-| Nr. | Denkmal | Ort |
-| --- | --- | --- |
-| 01 | Ender Dorfkirche | Herdecke-Kirchende |
-| 02 | Kriegerdenkmal Kirchende | Herdecke |
-| 03 | Hohensyburg | Hagen / Wetter (Ruhr) |
+| Nr. | Denkmal | Zentrum / Verteidigungsziel | Ort |
+| --- | --- | --- | --- |
+| 01 | Ender Dorfkirche + Kriegerdenkmal | **Der Löwe** (Kirche als Randkulisse) | Herdecke-Kirchende |
+| 02 | Kriegerdenkmal Kirchende | zu klären (evtl. identisch mit L01) | Herdecke |
+| 03 | Hohensyburg | Kaiser-Wilhelm-Denkmal (Ruine als Kulisse) | Hagen / Wetter (Ruhr) |
 
 ## Quickstart (Prototyp)
 
-Der Prototyp nutzt ES-Module und lädt three.js per CDN, deshalb braucht es lokal einen simplen Webserver:
+Der Prototyp nutzt ES-Module und lädt three.js per CDN. Offline geht er über einen lokalen Webserver:
 
 ```bash
 npx serve .        # oder: python3 -m http.server 8000
@@ -31,7 +33,7 @@ npx serve .        # oder: python3 -m http.server 8000
 
 Dann öffnen: `http://localhost:8000` (Desktop-Browser oder Android-WebView).
 
-**Bedienung:** Start drücken, Gegner laufen von allen Seiten aufs Denkmal zu. **Slot antipfen = Platzhalter-Turm bauen (10 Energie).** Unten: Speed x1–x5, Start/Pause/Neustart. Der Balken unten zeigt die Denkmal-Integrität.
+**Bedienung:** Start drücken, Gegner laufen von allen Seiten auf den Löwen zu. **Slot antipfen = Platzhalter-Turm bauen (10 Energie).** Unten: Speed x1–x5, Start/Pause/Neustart. Der Balken zeigt die Löwen-Integrität.
 
 ## Projektstruktur
 
@@ -41,7 +43,7 @@ denkmal-ansturm/
 ├── src/
 │   ├── main.js           # Bootstrap: Input, HUD, Render-Loop
 │   ├── engine.js         # Renderer, orthografische Iso-Kamera, Licht
-│   ├── game.js           # Welt (Dummy-Denkmal, Slot-Ringe) + Spiellogik
+│   ├── game.js           # L01-Welt (Löwe, Dorfkirche, Slot-Ringe) + Spiellogik
 │   ├── wavedata.js       # datengetriebene Wellen-Definition (Platzhalter)
 │   └── ui.js             # HUD-Bindung (DOM)
 ├── docs/
@@ -55,7 +57,7 @@ denkmal-ansturm/
 
 ## Nächste Schritte
 
-- [ ] Foto-Sets für die drei Denkmäler (60–150 Fotos je Denkmal, siehe docs/ASSET-PIPELINE.md)
+- [ ] Foto-Set Löwe (L01) für Fotogrammetrie: 80–120 Fotos reihum (siehe docs/ASSET-PIPELINE.md)
 - [ ] Fotogrammetrie-Pipeline am echten Denkmal testen (Meshroom → Blender → GLB)
 - [ ] Slot-Layouts pro Level statt Standard-Ringen
 - [ ] Perk-Kartenset (1 aus 3, alle 5 Wellen)
@@ -64,4 +66,4 @@ denkmal-ansturm/
 - [ ] dark-orchestrale KI-Musik + Sounds (WebView-Autoplay beachten)
 - [ ] Rewarded-Video-Einbindung (nur Boni, nie Balancing)
 
-**Hinweis:** Der Prototyp zeigt ein prozedurales Dummy-Denkmal und nutzt Platzhalter-Balancing, bis die echten GLB-Assets stehen.
+**Hinweis:** Der Prototyp zeigt Platzhalter (prozeduraler Löwe, Blockkirche) und nutzt Platzhalter-Balancing, bis die echten GLB-Assets stehen.

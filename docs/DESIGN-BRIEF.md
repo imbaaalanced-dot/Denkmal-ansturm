@@ -1,8 +1,8 @@
 # Design-Brief – Denkmal Ansturm
 
-**Stand:** 18.11.2026 · Komplett-Neuentwicklung, losgelöst von Denkmal TD2 · Eigenes Repository: denkmal-ansturm
+**Stand:** 18.11.2026 · Komplett-Neuentwicklung, losgelöst von Denkmal TD2 · Repo live: https://github.com/imbaaalanced-dot/Denkmal-ansturm (public, Prototyp läuft via GitHub Pages)
 
-Alle Entscheidungen stammen aus der Anforderungs-Runde mit Marcel (12 Fragen, 4 Runden).
+Alle Entscheidungen stammen aus der Anforderungs-Runde mit Marcel (12 Fragen, 4 Runden) plus Fortführung (L01-Entscheidung: Löwe als Ziel).
 
 ## Vision
 
@@ -29,11 +29,13 @@ Dark-Fantasy-Tower-Defense im Denkmal-TD-Stil, aber komplett neu: Echte, real ex
 | Sound/Musik | Komplett neu, dark-orchestral, KI-generiert |
 | Türme/Helden/Monster | Komplett neu, nur der Stil bleibt (Dark Fantasy) |
 
-## Startlevel (Referenzen: Foto-Upload oder Recherche)
+## Startlevel
 
-1. **Ender Dorfkirche** (Herdecke)
-2. **Kriegerdenkmal Kirchende** (Herdecke)
+1. **Ender Dorfkirche (Herdecke)** – Zentrum/Verteidigungsziel: **der Löwe** des Kriegerdenkmals; Dorfkirche nur Kulisse am Kartenrand
+2. **Kriegerdenkmal Kirchende** (Herdecke) – zu klären: Standort evtl. identisch mit L01
 3. **Hohensyburg** (Wetter/Hagen)
+
+Referenzen: Foto-Upload durch Marcel (erste 8 Referenzen L01 vorhanden) oder Recherche.
 
 ## Offene Punkte für die Umsetzung
 

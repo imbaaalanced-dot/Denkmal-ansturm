@@ -1,20 +1,122 @@
 import * as THREE from 'three';
 import { generateWave, MAX_WAVES } from './wavedata.js';
 
-// Prototyp: Dummy-Denkmal (prozedural) + feste Slot-Ringe + 360-Spawns.
-// Sobald Fotogrammetrie-Assets stehen, ersetzt ein GLB das Dummy-Denkmal (docs/ASSET-PIPELINE.md).
+// Level L01 - Ender Dorfkirche:
+// Verteidigungsziel ist der LOEWE auf dem Kriegerdenkmal (Zentrum der Arena).
+// Die Dorfkirche steht als Kulisse am Kartenrand, ohne Verteidigungsrolle.
+// Alle Formen sind Platzhalter, bis die Fotogrammetrie-Assets stehen (docs/ASSET-PIPELINE.md).
 
 export const SPAWN_RADIUS = 15;
 const MONUMENT_RADIUS = 2.2;
 
+// Kirche steht hinten oben im Bild; in diesem Keil werden Spawns leicht verschoben,
+// damit Gegner nicht IM Kirchengebaude spawnen (optisch sauber, es bleibt 360-Ansturm).
+const CHURCH_ANGLE = Math.PI * 1.25;
+const CHURCH_WEDGE = 0.65;
+
 const stoneMat = new THREE.MeshStandardMaterial({ color: 0x8d9199, roughness: 0.95 });
+const darkStoneMat = new THREE.MeshStandardMaterial({ color: 0x4a4f5c, roughness: 0.8 });
+const mossMat = new THREE.MeshStandardMaterial({ color: 0x39513a, roughness: 1.0 });
+const lionMat = new THREE.MeshStandardMaterial({ color: 0xb3a284, roughness: 0.85 });
+const brickMat = new THREE.MeshStandardMaterial({ color: 0x7a5644, roughness: 0.95 });
+const roofMat = new THREE.MeshStandardMaterial({ color: 0x363b47, roughness: 0.75, metalness: 0.15 });
+const glassMat = new THREE.MeshStandardMaterial({ color: 0x22283a, emissive: 0x0e1830, roughness: 0.4 });
 const slotMat = new THREE.MeshStandardMaterial({ color: 0x2b3441, roughness: 0.85 });
 const enemyMat = new THREE.MeshStandardMaterial({ color: 0x3c2f45, emissive: 0x120a1a, roughness: 0.7 });
 const bossMat = new THREE.MeshStandardMaterial({ color: 0x8a2338, emissive: 0x400a12, roughness: 0.6 });
 
+// --- Platzhalter: Loewe auf dem Kriegerdenkmal ---
+function buildLion() {
+  const group = new THREE.Group();
+  const plinth = new THREE.Mesh(new THREE.BoxGeometry(3.3, 0.35, 3.3), darkStoneMat);
+  plinth.position.y = 0.18;
+  const pedestal = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.05, 2.8), stoneMat);
+  pedestal.position.y = 0.85;
+  const plaque = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.9, 0.1), darkStoneMat);
+  plaque.position.set(0, 0.85, 1.46);
+  const moss = new THREE.Mesh(new THREE.BoxGeometry(2.9, 0.18, 2.9), mossMat);
+  moss.position.y = 1.44;
+
+  const loewe = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.4, 1.15, 6, 12), lionMat);
+  body.rotation.z = Math.PI / 2;
+  body.position.set(-0.15, 1.78, 0);
+  const mane = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 10), lionMat);
+  mane.scale.set(1.0, 1.15, 1.2);
+  mane.position.set(0.58, 1.94, 0);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 12, 10), lionMat);
+  head.position.set(0.88, 2.0, 0);
+  const snout = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.2, 0.28), lionMat);
+  snout.position.set(1.1, 1.92, 0);
+  const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.42, 8), lionMat);
+  legL.position.set(0.5, 1.57, 0.17);
+  const legR = legL.clone();
+  legR.position.z = -0.17;
+  const pawL = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.16, 8), lionMat);
+  pawL.position.set(0.72, 1.34, 0.17);
+  const pawR = pawL.clone();
+  pawR.position.z = -0.17;
+  const haunchL = new THREE.Mesh(new THREE.CapsuleGeometry(0.3, 0.35, 6, 10), lionMat);
+  haunchL.rotation.z = Math.PI / 2;
+  haunchL.position.set(-0.85, 1.8, 0.18);
+  const haunchR = haunchL.clone();
+  haunchR.position.z = -0.18;
+  const tail = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.55, 6), lionMat);
+  tail.rotation.z = -1.2;
+  tail.position.set(-1.05, 1.62, 0.12);
+  loewe.add(body, mane, head, snout, legL, legR, pawL, pawR, haunchL, haunchR, tail);
+  loewe.rotation.y = Math.PI * 0.12;
+
+  group.add(plinth, pedestal, plaque, moss, loewe);
+  return group;
+}
+
+// --- Platzhalter: Dorfkirche am Kartenrand (Kulisse, Backstein + Uhr + Schieferdach) ---
+function buildChurch() {
+  const church = new THREE.Group();
+  const nave = new THREE.Mesh(new THREE.BoxGeometry(7.5, 4.5, 12), brickMat);
+  nave.position.y = 2.25;
+  const roofL = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.25, 12.6), roofMat);
+  roofL.position.set(-1.75, 5.2, 0);
+  roofL.rotation.z = 0.55;
+  const roofR = roofL.clone();
+  roofR.position.x = 1.75;
+  roofR.rotation.z = -0.55;
+  const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 12.6), roofMat);
+  ridge.position.set(0, 6.35, 0);
+  const tower = new THREE.Mesh(new THREE.BoxGeometry(3.2, 9.2, 3.2), brickMat);
+  tower.position.set(0, 4.6, 0);
+  const towerRoof = new THREE.Mesh(new THREE.ConeGeometry(2.7, 2.4, 4), roofMat);
+  towerRoof.rotation.y = Math.PI / 4;
+  towerRoof.position.set(0, 10.5, 0);
+  const clock = new THREE.Mesh(new THREE.CircleGeometry(0.85, 24), darkStoneMat);
+  clock.position.set(0, 8.4, 1.62);
+  const door = new THREE.Mesh(new THREE.BoxGeometry(1.5, 2.3, 0.15), darkStoneMat);
+  door.position.set(0, 1.15, 6.03);
+  const windowL = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.7, 0.1), glassMat);
+  windowL.position.set(-2.4, 3.4, 6.02);
+  const windowR = windowL.clone();
+  windowR.position.x = 2.4;
+  church.add(nave, roofL, roofR, ridge, tower, towerRoof, clock, door, windowL, windowR);
+
+  church.scale.setScalar(0.85);
+  church.position.set(Math.cos(CHURCH_ANGLE) * 16.5, 0, Math.sin(CHURCH_ANGLE) * 16.5);
+  church.rotation.y = CHURCH_ANGLE; // Front zur Arena
+  return church;
+}
+
+function spawnAngle() {
+  let a = Math.random() * Math.PI * 2;
+  const diff = Math.atan2(Math.sin(a - CHURCH_ANGLE), Math.cos(a - CHURCH_ANGLE));
+  if (Math.abs(diff) < CHURCH_WEDGE) {
+    a = CHURCH_ANGLE + (diff < 0 ? -CHURCH_WEDGE : CHURCH_WEDGE) + (Math.random() - 0.5) * 0.15;
+  }
+  return a;
+}
+
 export function buildWorld(scene) {
   const ground = new THREE.Mesh(
-    new THREE.CircleGeometry(17, 64),
+    new THREE.CircleGeometry(21, 72),
     new THREE.MeshStandardMaterial({ color: 0x1a222c, roughness: 1.0 })
   );
   ground.rotation.x = -Math.PI / 2;
@@ -30,22 +132,23 @@ export function buildWorld(scene) {
   spawnRing.position.y = 0.03;
   scene.add(spawnRing);
 
-  // Dummy-Denkmal
-  const monument = new THREE.Group();
-  const base = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.6, 5.6), stoneMat);
-  base.position.y = 0.3;
-  const plinth = new THREE.Mesh(new THREE.CylinderGeometry(1.5, 1.7, 2.8, 6), stoneMat);
-  plinth.position.y = 2.0;
-  const obelisk = new THREE.Mesh(new THREE.ConeGeometry(1.0, 4.2, 4), stoneMat);
-  obelisk.position.y = 5.4;
-  const crystal = new THREE.Mesh(
-    new THREE.OctahedronGeometry(0.6),
-    new THREE.MeshStandardMaterial({ color: 0x5a86ff, emissive: 0x1d3fd6, emissiveIntensity: 1.0 })
-  );
-  crystal.position.y = 8.1;
-  monument.add(base, plinth, obelisk, crystal);
+  // Loewe = Denkmal (= Verteidigungsziel) im Zentrum
+  const monument = buildLion();
   monument.traverse((o) => { if (o.isMesh) o.castShadow = true; });
   scene.add(monument);
+
+  // Dorfkirche am Kartenrand, Kulisse
+  const church = buildChurch();
+  church.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  scene.add(church);
+
+  // Wachterfunke ueber dem Loewen (leuchtet, dreht sich)
+  const crystal = new THREE.Mesh(
+    new THREE.OctahedronGeometry(0.35),
+    new THREE.MeshStandardMaterial({ color: 0x5a86ff, emissive: 0x1d3fd6, emissiveIntensity: 1.0 })
+  );
+  crystal.position.set(0, 3.1, 0);
+  scene.add(crystal);
 
   // Feste Slot-Ringe um das Denkmal
   const slots = [];
@@ -65,7 +168,7 @@ export function buildWorld(scene) {
     }
   });
 
-  return { monument, crystal, slots };
+  return { monument, church, crystal, slots };
 }
 
 export class Game {
@@ -121,7 +224,7 @@ export class Game {
       new THREE.ConeGeometry(spec.boss ? 1.1 : 0.55, spec.boss ? 3.2 : 1.6, 6),
       spec.boss ? bossMat : enemyMat
     );
-    const angle = Math.random() * Math.PI * 2;
+    const angle = spawnAngle();
     const r = SPAWN_RADIUS + (spec.boss ? 0.7 : 0);
     mesh.position.set(Math.cos(angle) * r, spec.boss ? 1.6 : 0.8, Math.sin(angle) * r);
     mesh.castShadow = true;
@@ -195,7 +298,7 @@ export class Game {
         if (this.interWaveTimer <= 0) {
           if (this.wave >= MAX_WAVES) {
             this.state = 'won';
-            this.hud.banner('Denkmal verteidigt! Welle ' + MAX_WAVES + ' geschafft - New Game+ folgt.', 8000);
+            this.hud.banner('Loewe verteidigt! Welle ' + MAX_WAVES + ' geschafft - New Game+ folgt.', 8000);
             this.hud.setState(this.state);
           } else {
             this.nextWave();
@@ -203,7 +306,7 @@ export class Game {
         }
       }
 
-      // Gegner laufen aufs Denkmal zu
+      // Gegner laufen auf den Loewen zu
       const reached = [];
       for (const enemy of this.enemies) {
         const dir = new THREE.Vector3(-enemy.mesh.position.x, 0, -enemy.mesh.position.z);
@@ -223,7 +326,7 @@ export class Game {
         this.hud.sync(this);
         if (this.hp <= 0) {
           this.state = 'lost';
-          this.hud.banner('Das Denkmal ist gefallen ...', 8000);
+          this.hud.banner('Der Loewe ist gefallen ...', 8000);
           this.hud.setState(this.state);
         }
       }
