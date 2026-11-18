@@ -1,14 +1,15 @@
 import * as THREE from 'three';
 import { generateWave, MAX_WAVES } from './wavedata.js';
 import { createGroundTexture, buildGravestones } from './ground.js';
+import { ENEMY_TYPES, buildEnemyMesh } from './enemies.js';
 
 // Level L01 - Ender Dorfkirche:
 // Verteidigungsziel ist der LOEWE auf dem Kriegerdenkmal (Zentrum der Arena).
 // Die Dorfkirche steht als Kulisse am Kartenrand, ohne Verteidigungsrolle.
-// Alle Formen sind Platzhalter, bis die Fotogrammetrie-Assets stehen (docs/ASSET-PIPELINE.md).
+// Gegner-Roster: siehe src/enemies.js (8 Typen, Mech-Drache als Boss alle 10 Wellen).
 
 export const SPAWN_RADIUS = 15;
-const MONUMENT_RADIUS = 2.2;
+const MONUMENT_RADIUS = 2.4;
 
 // Kirche steht hinten oben im Bild; in diesem Keil werden Spawns leicht verschoben,
 // damit Gegner nicht IM Kirchengebaude spawnen (optisch sauber, es bleibt 360-Ansturm).
@@ -23,8 +24,6 @@ const brickMat = new THREE.MeshStandardMaterial({ color: 0x7a5644, roughness: 0.
 const roofMat = new THREE.MeshStandardMaterial({ color: 0x363b47, roughness: 0.75, metalness: 0.15 });
 const glassMat = new THREE.MeshStandardMaterial({ color: 0x22283a, emissive: 0x0e1830, roughness: 0.4 });
 const slotMat = new THREE.MeshStandardMaterial({ color: 0x2b3441, roughness: 0.85 });
-const enemyMat = new THREE.MeshStandardMaterial({ color: 0x3c2f45, emissive: 0x120a1a, roughness: 0.7 });
-const bossMat = new THREE.MeshStandardMaterial({ color: 0x8a2338, emissive: 0x400a12, roughness: 0.6 });
 
 // --- Platzhalter: Loewe auf dem Kriegerdenkmal ---
 function buildLion() {
@@ -218,23 +217,31 @@ export class Game {
     this.spawnTimer = 0;
     this.interWaveTimer = 4;
     let text = 'Welle ' + this.wave + '/' + MAX_WAVES;
-    if (wave.isBoss) text = 'Welle ' + this.wave + ': Denkmal-Verstaerkung!';
+    if (wave.isBoss) text = 'Welle ' + this.wave + ': Mech-Drache greift an!';
     else if (this.wave % 5 === 0) text = 'Welle ' + this.wave + ': Perk-Wahl (Platzhalter)';
     this.hud.banner(text);
     this.hud.sync(this);
   }
 
-  spawnEnemy(spec) {
-    const mesh = new THREE.Mesh(
-      new THREE.ConeGeometry(spec.boss ? 1.1 : 0.55, spec.boss ? 3.2 : 1.6, 6),
-      spec.boss ? bossMat : enemyMat
-    );
-    const angle = spawnAngle();
-    const r = SPAWN_RADIUS + (spec.boss ? 0.7 : 0);
-    mesh.position.set(Math.cos(angle) * r, spec.boss ? 1.6 : 0.8, Math.sin(angle) * r);
-    mesh.castShadow = true;
+  spawnEnemy(typeKey) {
+    const t = ENEMY_TYPES[typeKey] || ENEMY_TYPES.skelett;
+    const bossIndex = t.boss ? Math.max(1, Math.floor(this.wave / 10)) : 1;
+    const mesh = buildEnemyMesh(typeKey);
+    const growth = t.boss ? 1 + (bossIndex - 1) * 0.12 : 1;
+    mesh.scale.setScalar(t.scale * growth);
+    mesh.rotation.y = ((typeKey === 'drache' ? spawnAngle() : spawnAngle()) + Math.PI) * 1;
+    mesh.rotation.y = Math.random() * Math.PI * 2;
+    if (!t.float) {
+      mesh.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    }
+    const angle = this.lastSpawnAngle !== undefined ? this.lastSpawnAngle : spawnAngle();
+    this.lastSpawnAngle = spawnAngle();
+    const r = SPAWN_RADIUS + (t.boss ? 0.7 : 0);
+    mesh.position.set(Math.cos(angle) * r, t.float ? 0.35 : 0, Math.sin(angle) * r);
     this.scene.add(mesh);
-    this.enemies.push({ mesh, hp: spec.hp, speed: spec.speed, dmg: spec.dmg, boss: !!spec.boss });
+    const hp = Math.round((t.hpBase + this.wave * t.hpPerWave) * (t.boss ? 1 + (bossIndex - 1) * 0.35 : 1));
+    const dmg = Math.round(t.dmg * (t.boss ? 1 + (bossIndex - 1) * 0.25 : 1));
+    this.enemies.push({ mesh, hp, speed: t.speed, dmg, bounty: t.bounty, boss: !!t.boss, float: !!t.float });
   }
 
   placeTower(slot) {
@@ -266,7 +273,7 @@ export class Game {
   damageEnemy(enemy, dmg) {
     enemy.hp -= dmg;
     if (enemy.hp <= 0) {
-      this.energy += enemy.boss ? 25 : 2;
+      this.energy += enemy.bounty;
       const i = this.enemies.indexOf(enemy);
       if (i >= 0) this.enemies.splice(i, 1);
       this.scene.remove(enemy.mesh);
@@ -321,7 +328,7 @@ export class Game {
           continue;
         }
         dir.normalize();
-        enemy.mesh.position.addScaledVector(dir, enemy.speed * dt);
+        enemy.mesh.position.addScaledVector(dir, enemy.speed * dt * (enemy.boss ? 1 : 1));
       }
       if (reached.length > 0) {
         for (const enemy of reached) {
