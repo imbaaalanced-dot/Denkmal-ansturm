@@ -229,15 +229,22 @@ export class Game {
     const mesh = buildEnemyMesh(typeKey);
     const growth = t.boss ? 1 + (bossIndex - 1) * 0.12 : 1;
     mesh.scale.setScalar(t.scale * growth);
-    mesh.rotation.y = ((typeKey === 'drache' ? spawnAngle() : spawnAngle()) + Math.PI) * 1;
-    mesh.rotation.y = Math.random() * Math.PI * 2;
+
+    // Ein zufaelliger Spawnwinkel (360-Ansturm), Kirche wird ausgespart
+    const angle = spawnAngle();
+    const r = SPAWN_RADIUS + (t.boss ? 0.7 : 0);
+    mesh.position.set(Math.cos(angle) * r, t.float ? 0.35 : 0, Math.sin(angle) * r);
+
+    // Blickrichtung zum Denkmal: Der Drache hat seine Front auf +X
+    if (t.boss) {
+      mesh.rotation.y = Math.PI - angle;
+    } else {
+      mesh.rotation.y = Math.PI - angle + (Math.random() - 0.5) * 0.4;
+    }
+
     if (!t.float) {
       mesh.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     }
-    const angle = this.lastSpawnAngle !== undefined ? this.lastSpawnAngle : spawnAngle();
-    this.lastSpawnAngle = spawnAngle();
-    const r = SPAWN_RADIUS + (t.boss ? 0.7 : 0);
-    mesh.position.set(Math.cos(angle) * r, t.float ? 0.35 : 0, Math.sin(angle) * r);
     this.scene.add(mesh);
     const hp = Math.round((t.hpBase + this.wave * t.hpPerWave) * (t.boss ? 1 + (bossIndex - 1) * 0.35 : 1));
     const dmg = Math.round(t.dmg * (t.boss ? 1 + (bossIndex - 1) * 0.25 : 1));
