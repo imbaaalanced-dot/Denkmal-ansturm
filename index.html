@@ -34,6 +34,7 @@
     .perk-text { display: flex; flex-direction: column; gap: 2px; }
     .perk-name { font-size: 16px; font-weight: 700; }
     .perk-desc { font-size: 12px; opacity: 0.8; }
+    #tower-bar[hidden] { display: none; }
   </style>
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -46,9 +47,15 @@
       <div class="chip" id="wave-chip">Welle 0/100</div>
       <div class="chip" id="energy-chip">Energie 60</div>
       <div class="chip" id="perk-chip">Staerke 0</div>
+      <div class="chip" id="tower-chip" hidden>Tuerme 0/4</div>
     </div>
     <div class="bottom">
       <div id="hp-wrap"><div id="hp-fill"></div><span id="hp-text">Loewe 1000 / 1000</span></div>
+      <div class="controls" id="tower-bar" hidden>
+        <button data-tower="bolzen" class="active">🏹 Bolzen</button>
+        <button data-tower="splitter">💥 Splitter</button>
+        <button data-tower="frost">❄️ Frost</button>
+      </div>
       <div class="controls">
         <button data-speed="1" class="active">x1</button>
         <button data-speed="2">x2</button>
@@ -56,7 +63,7 @@
         <button data-speed="5">x5</button>
         <button id="state-btn">Start</button>
       </div>
-      <div id="hint">Verteidige den Löwen! Slot antippen = Platzhalter-Turm (10 Energie) · Staerken-Wahl nach jeder 5. Welle</div>
+      <div id="hint">Vor Start: Turmtyp wählen und die 4 Plätze N/O/S/W besetzen (10 Energie je Turm, danach fest) · Stärken-Wahl nach jeder 5. Welle · Verteidige den Löwen!</div>
     </div>
   </div>
   <div id="banner" hidden></div>

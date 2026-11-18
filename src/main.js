@@ -33,6 +33,10 @@ stateBtn.addEventListener('click', () => {
   } else if (game.state === 'paused') {
     game.state = 'running';
   } else if (game.state === 'ready') {
+    if (game.towers.length < 4) {
+      hud.banner('Erst alle 4 Turmplaetze (N/O/S/W) besetzen!', 1600);
+      return;
+    }
     game.state = 'running';
     game.nextWave();
   } else {
@@ -42,16 +46,31 @@ stateBtn.addEventListener('click', () => {
   hud.sync(game);
 });
 
-// Slot antippen = Platzhalter-Turm bauen (10 Energie)
+// Turm-Typ waehlen (nur im Aufbau vor Welle 1 aktiv)
+const towerBtns = Array.from(document.querySelectorAll('[data-tower]'));
+for (const btn of towerBtns) {
+  btn.addEventListener('click', () => {
+    game.selectedTower = btn.dataset.tower;
+    for (const b of towerBtns) b.classList.toggle('active', b === btn);
+  });
+}
+
+// Turmplatz N/O/S/W antippen = gewaehlten Turmtyp bauen
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 canvas.addEventListener('pointerdown', (event) => {
   pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
   pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
   raycaster.setFromCamera(pointer, engine.camera);
-  const hits = raycaster.intersectObjects(world.slots, false);
-  if (hits.length > 0 && !game.placeTower(hits[0].object)) {
-    hud.banner('Slot belegt oder zu wenig Energie (10 benoetigt)', 1400);
+  const hits = raycaster.intersectObjects(world.pads, false);
+  if (hits.length > 0) {
+    if (game.state === 'ready') {
+      if (!game.placeTower(hits[0].object)) {
+        hud.banner('Platz belegt oder zu wenig Energie (10 benoetigt)', 1400);
+      }
+    } else {
+      hud.banner('Tuerme stehen fest: Aufstellung nur vor Welle 1', 1400);
+    }
   }
 });
 

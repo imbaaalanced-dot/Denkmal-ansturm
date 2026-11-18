@@ -4,6 +4,8 @@ export function createHud() {
   const waveChip = document.getElementById('wave-chip');
   const energyChip = document.getElementById('energy-chip');
   const perkChip = document.getElementById('perk-chip');
+  const towerChip = document.getElementById('tower-chip');
+  const towerBar = document.getElementById('tower-bar');
   const hpFill = document.getElementById('hp-fill');
   const hpText = document.getElementById('hp-text');
   const stateBtn = document.getElementById('state-btn');
@@ -17,12 +19,17 @@ export function createHud() {
       waveChip.textContent = 'Welle ' + game.wave + '/100';
       energyChip.textContent = 'Energie ' + Math.floor(game.energy);
       perkChip.textContent = 'Staerke ' + game.chosenPerks.length;
+      towerChip.textContent = 'Tuerme ' + game.towers.length + '/4';
       hpFill.style.width = Math.max(0, (game.hp / game.maxHp) * 100) + '%';
       hpText.textContent = 'Loewe ' + Math.ceil(game.hp) + ' / ' + game.maxHp;
     },
     setState(state) {
       const labels = { ready: 'Start', running: 'Pause', paused: 'Weiter', perk: 'Waehle Staerke', lost: 'Neustart', won: 'Neustart' };
       stateBtn.textContent = labels[state] || 'Start';
+      // Turm-Auswahl nur im Aufbau (vor Welle 1), danach stehen die Tuerme fest
+      towerBar.hidden = state !== 'ready';
+      towerChip.hidden = state !== 'ready';
+      perkChip.hidden = state === 'ready';
     },
     banner(text, ms) {
       bannerEl.textContent = text;
@@ -30,7 +37,7 @@ export function createHud() {
       clearTimeout(bannerTimer);
       bannerTimer = setTimeout(() => { bannerEl.hidden = true; }, ms || 2400);
     },
-    // Stärken-Wahl (Roguelite): 1 aus 3 Karten
+    // Staerken-Wahl (Roguelite): 1 aus 3 Karten
     showPerks(options, onPick) {
       perkCards.innerHTML = '';
       for (const perk of options) {

@@ -3,6 +3,7 @@ import { generateWave, MAX_WAVES } from './wavedata.js';
 import { createGroundTexture, buildGravestones } from './ground.js';
 import { ENEMY_TYPES, buildEnemyMesh } from './enemies.js';
 import { rollPerkOptions } from './perks.js';
+import { TOWER_TYPES, buildTowerMesh } from './towers.js';
 
 // Level L01 - Ender Dorfkirche:
 // Verteidigungsziel ist der LOEWE auf dem Kriegerdenkmal (Zentrum der Arena).
@@ -155,25 +156,26 @@ export function buildWorld(scene) {
   crystal.position.set(0, 3.1, 0);
   scene.add(crystal);
 
-  // Feste Slot-Ringe um das Denkmal
-  const slots = [];
-  const slotGeo = new THREE.CylinderGeometry(0.8, 0.95, 0.35, 12);
+  // Vier feste Turmplaetze nach den Himmelsrichtungen (Startaufstellung vor Welle 1)
+  const pads = [];
+  const padGeo = new THREE.CylinderGeometry(1.05, 1.25, 0.35, 10);
+  const TOWER_PAD_RADIUS = 6.5;
   [
-    { radius: 4.8, count: 10 },
-    { radius: 8.6, count: 14 },
-  ].forEach((ring, ringIndex) => {
-    for (let i = 0; i < ring.count; i++) {
-      const angle = (i / ring.count) * Math.PI * 2 + ringIndex * 0.3;
-      const slot = new THREE.Mesh(slotGeo, slotMat);
-      slot.position.set(Math.cos(angle) * ring.radius, 0.18, Math.sin(angle) * ring.radius);
-      slot.receiveShadow = true;
-      slot.userData.free = true;
-      scene.add(slot);
-      slots.push(slot);
-    }
+    { key: 'N', angle: -Math.PI / 2 },  // Norden (hinten)
+    { key: 'O', angle: 0 },             // Osten (rechts)
+    { key: 'S', angle: Math.PI / 2 },   // Sueden (vorn)
+    { key: 'W', angle: Math.PI },       // Westen (links)
+  ].forEach((dir) => {
+    const pad = new THREE.Mesh(padGeo, slotMat);
+    pad.position.set(Math.cos(dir.angle) * TOWER_PAD_RADIUS, 0.18, Math.sin(dir.angle) * TOWER_PAD_RADIUS);
+    pad.receiveShadow = true;
+    pad.userData.free = true;
+    pad.userData.key = dir.key;
+    scene.add(pad);
+    pads.push(pad);
   });
 
-  return { monument, church, crystal, slots };
+  return { monument, church, crystal, pads };
 }
 
 export class Game {
@@ -197,7 +199,7 @@ export class Game {
     this.towers = [];
     this.projectiles = [];
     this.spawnQueue = [];
-    for (const slot of this.world.slots) slot.userData.free = true;
+    for (const pad of this.world.pads) pad.userData.free = true;
     this.wave = 0;
     this.hp = this.maxHp;
     this.energy = 60;
@@ -205,6 +207,7 @@ export class Game {
     // Roguelite-Perks: Multiplikatoren wirken sofort auf alle Tuerme
     this.perk = { dmgMul: 1, rateMul: 1, rangeMul: 1, bountyMul: 1, waveBonus: 0, slow: 0, slowDur: 0, splash: false, splashRadius: 0, crit: 0 };
     this.chosenPerks = [];
+    this.selectedTower = 'bolzen';
     this.spawnTimer = 0;
     this.interWaveTimer = 0;
     this.waveCleared = true;
@@ -252,32 +255,29 @@ export class Game {
     this.scene.add(mesh);
     const hp = Math.round((t.hpBase + this.wave * t.hpPerWave) * (t.boss ? 1 + (bossIndex - 1) * 0.35 : 1));
     const dmg = Math.round(t.dmg * (t.boss ? 1 + (bossIndex - 1) * 0.25 : 1));
-    this.enemies.push({ mesh, hp, speed: t.speed, dmg, bounty: t.bounty, boss: !!t.boss, float: !!t.float, slowT: 0 });
+    this.enemies.push({ mesh, hp, speed: t.speed, dmg, bounty: t.bounty, boss: !!t.boss, float: !!t.float, slowT: 0, slowAmt: 0 });
   }
 
-  placeTower(slot) {
-    if ((this.state !== 'running' && this.state !== 'paused') || !slot.userData.free || this.energy < 10) {
+  // Turmbau nur im Aufbau (state ready): Platz N/O/S/W + gewaehlter Turmtyp.
+  // Nach dem Start stehen die 4 Tuerme fuer das ganze Level fest (Entscheidung = Strategie).
+  placeTower(pad) {
+    const t = TOWER_TYPES[this.selectedTower] || TOWER_TYPES.bolzen;
+    if (this.state !== 'ready' || !pad.userData.free || this.energy < t.cost) {
       return false;
     }
-    this.energy -= 10;
-    slot.userData.free = false;
-    const tower = new THREE.Group();
-    const body = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.5, 0.68, 1.7, 8),
-      new THREE.MeshStandardMaterial({ color: 0x4a5568, roughness: 0.6 })
-    );
-    body.position.y = 0.85;
-    const head = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.45),
-      new THREE.MeshStandardMaterial({ color: 0x7fb2ff, emissive: 0x2a5bd7, emissiveIntensity: 0.8 })
-    );
-    head.position.y = 2.0;
-    tower.add(body, head);
+    this.energy -= t.cost;
+    pad.userData.free = false;
+    const tower = buildTowerMesh(this.selectedTower);
     tower.traverse((o) => { if (o.isMesh) o.castShadow = true; });
-    tower.position.copy(slot.position);
+    tower.position.copy(pad.position);
     this.scene.add(tower);
-    // Basiswerte; Perk-Multiplikatoren werden zur Schusszeit angewandt (wirkt auch auf alte Tuerme)
-    this.towers.push({ mesh: tower, head, cool: 0, range: 7.5, dmg: 4, rate: 0.75 });
+    // Basiswerte; Perk-Multiplikatoren werden zur Schusszeit angewandt
+    this.towers.push({
+      mesh: tower, head: tower.userData.head, cool: 0,
+      key: this.selectedTower,
+      dmg: t.dmg, rate: t.rate, range: t.range,
+      splash: t.splash, splashRadius: t.splashRadius, slow: t.slow, slowDur: t.slowDur,
+    });
     this.hud.sync(this);
     return true;
   }
@@ -365,10 +365,11 @@ export class Game {
           continue;
         }
         dir.normalize();
-        // Frosthauch-Perk: kurzzeitig verlangsamte Gegner
+        // Frostturm / Frosthauch: kurzzeitig verlangsamte Gegner
         if (enemy.slowT > 0) {
           enemy.slowT -= dt;
-          enemy.mesh.position.addScaledVector(dir, enemy.speed * dt * (1 - this.perk.slow));
+          enemy.mesh.position.addScaledVector(dir, enemy.speed * dt * (1 - (enemy.slowAmt || 0)));
+          if (enemy.slowT <= 0) enemy.slowAmt = 0;
         } else {
           enemy.mesh.position.addScaledVector(dir, enemy.speed * dt);
         }
@@ -403,14 +404,20 @@ export class Game {
         let dmg = tower.dmg * this.perk.dmgMul;
         let crit = false;
         if (Math.random() < this.perk.crit) { dmg *= 2; crit = true; }
+        const projColor = crit ? 0xffd76a : (tower.key === 'frost' ? 0x9fd9ff : tower.key === 'splitter' ? 0xff9a5a : 0x9cc4ff);
         const proj = new THREE.Mesh(
           new THREE.SphereGeometry(crit ? 0.24 : 0.16, 8, 8),
-          new THREE.MeshBasicMaterial({ color: crit ? 0xffd76a : 0x9cc4ff })
+          new THREE.MeshBasicMaterial({ color: projColor })
         );
         proj.position.copy(tower.mesh.position);
         proj.position.y = 2.0;
         this.scene.add(proj);
-        this.projectiles.push({ mesh: proj, target, speed: 16, dmg });
+        // Schusseffekte: Turm-Eigenwerte + globale Perk-Anteile
+        const splashRadius = tower.splashRadius + this.perk.splashRadius;
+        const splashFactor = tower.splash > 0 ? tower.splash : (this.perk.splash ? 0.5 : 0);
+        const slowAmt = Math.max(tower.slow, this.perk.slow);
+        const slowDur = slowAmt > 0 ? Math.max(tower.slowDur, this.perk.slowDur) : 0;
+        this.projectiles.push({ mesh: proj, target, speed: 16, dmg, splashFactor, splashRadius, slowAmt, slowDur });
       }
 
       // Projektile fliegen (homing)
@@ -425,20 +432,21 @@ export class Game {
         if (dir.length() <= step || dir.length() < 0.3) {
           const hitPos = proj.target.mesh.position.clone();
           this.damageEnemy(proj.target, proj.dmg);
-          // Sprengbolzen-Perk: Flaechenschaden um den Trefferpunkt
-          if (this.perk.splash) {
+          // Flaechenschaden: Splitterturm oder Sprengbolzen-Perk
+          if (proj.splashFactor > 0) {
             for (const other of this.enemies.slice()) {
-              if (other !== proj.target && other.mesh.position.distanceTo(hitPos) <= this.perk.splashRadius) {
-                this.damageEnemy(other, proj.dmg * 0.5);
+              if (other !== proj.target && other.mesh.position.distanceTo(hitPos) <= proj.splashRadius) {
+                this.damageEnemy(other, proj.dmg * proj.splashFactor);
               }
             }
           }
-          // Frosthauch-Perk: Gegner im Umkreis werden verlangsamt
-          if (this.perk.slow > 0) {
-            const slowRadius = this.perk.splashRadius > 0 ? this.perk.splashRadius : 1.4;
+          // Verlangsamung: Frostturm oder Frosthauch-Perk, wirkt im Treffer-Umfeld
+          if (proj.slowAmt > 0) {
+            const slowRadius = proj.splashRadius > 0 ? proj.splashRadius : 1.4;
             for (const other of this.enemies.slice()) {
               if (other.mesh.position.distanceTo(hitPos) <= slowRadius) {
-                other.slowT = this.perk.slowDur;
+                other.slowT = proj.slowDur;
+                other.slowAmt = Math.max(other.slowAmt, proj.slowAmt);
               }
             }
           }
