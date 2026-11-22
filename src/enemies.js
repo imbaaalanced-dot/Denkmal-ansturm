@@ -29,7 +29,7 @@ const goldRuneMat = new THREE.MeshStandardMaterial({ color: 0xffca4a, emissive: 
 export const ENEMY_TYPES = {
   skelett: { name: 'Skelett-Soldat',    hpBase: 6,  hpPerWave: 0.6, speed: 1.5, dmg: 6,  bounty: 2,  scale: 1.0,
              sprites: ['assets/enemies/skelett.png'], spriteH: 1.9 },
-  schattenwolf: { name: 'Schattenwolf', hpBase: 5,  hpPerWave: 0.5, speed: 3.2, dmg: 5,  bounty: 2,  scale: 0.9,
+  schattenwolf: { name: 'Schattenwolf', hpBase: 5,  hpPerWave: 0.5, speed: 3.2, dmg: 5,  bounty: 3,  scale: 0.9,
              sprites: ['assets/enemies/schattenwolf.png', 'assets/enemies/schattenwolf.svg'], spriteH: 1.6 },
   pirat:   { name: 'Skelett-Pirat',     hpBase: 4,  hpPerWave: 0.5, speed: 2.2, dmg: 5,  bounty: 2,  scale: 0.95,
              sprites: ['assets/enemies/pirat.png'], spriteH: 1.9 },
@@ -37,7 +37,7 @@ export const ENEMY_TYPES = {
              sprites: ['assets/enemies/gargoyle.png', 'assets/enemies/gargoyle.svg'], spriteH: 2.0 },
   ritter:  { name: 'Ritter (Schwert)',  hpBase: 12, hpPerWave: 0.9, speed: 1.3, dmg: 9,  bounty: 3,  scale: 1.15,
              sprites: ['assets/enemies/ritter.png'], spriteH: 2.2 },
-  geist:   { name: 'Nebel-Geist',       hpBase: 3,  hpPerWave: 0.4, speed: 2.6, dmg: 4,  bounty: 3,  scale: 1.0, float: true,
+  geist:   { name: 'Nebel-Geist',       hpBase: 5,  hpPerWave: 0.5, speed: 2.6, dmg: 4,  bounty: 3,  scale: 1.0, float: true,
              sprites: ['assets/enemies/geist.png'], spriteH: 2.1 },
   krieger: { name: 'Axt-Krieger',       hpBase: 10, hpPerWave: 0.8, speed: 1.8, dmg: 12, bounty: 4,  scale: 1.1,
              sprites: ['assets/enemies/krieger.png'], spriteH: 2.2 },

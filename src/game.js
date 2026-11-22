@@ -237,6 +237,7 @@ export class Game {
     this.monu = { dmg: 6, rate: 1.0, range: 5.5, cool: 0.5, lvDmg: 0, lvRate: 0, lvRange: 0 };
     this.spawnTimer = 0;
     this.interWaveTimer = 0;
+    this.waveData = null;
     this.waveCleared = true;
     this.state = 'ready';
     this.hud.setState(this.state);
@@ -247,10 +248,11 @@ export class Game {
     this.wave += 1;
     this.waveCleared = false;
     const wave = generateWave(this.wave);
+    this.waveData = wave; // enthaelt label + spawnInterval (Wellen-Bild v2)
     this.spawnQueue = wave.enemies.slice();
     this.spawnTimer = 0;
     this.interWaveTimer = 4;
-    let text = 'Welle ' + this.wave + '/' + MAX_WAVES;
+    let text = 'Welle ' + this.wave + '/' + MAX_WAVES + (wave.label ? ' - ' + wave.label : '');
     if (wave.isBoss) text = 'Welle ' + this.wave + ': Mech-Drache greift an!';
     else if (this.wave % 5 === 0) text = 'Welle ' + this.wave + ': Nach dieser Welle waehlst du eine Staerke!';
     this.hud.banner(text);
@@ -443,7 +445,7 @@ export class Game {
         this.spawnTimer -= dt;
         while (this.spawnQueue.length > 0 && this.spawnTimer <= 0) {
           this.spawnEnemy(this.spawnQueue.shift());
-          this.spawnTimer += 0.5;
+          this.spawnTimer += this.waveData ? this.waveData.spawnInterval : 0.5;
         }
       } else if (this.enemies.length === 0) {
         if (!this.waveCleared) {
