@@ -52,3 +52,13 @@ Neuentwicklung, bewusst getrennt von Denkmal TD2 (eigenes Repo), aber mit den do
 - Instancing-Strategie für Gegnermassen
 - Ads: Rewarded-Video-SDK für WebView (z. B. AdMob über Bridge); Fairness: nur Boni, nie Balancing
 - Audio: KI-generiert, dark-orchestral; Formate und Preload-Strategie
+
+
+## Persistenz (Save/Reload) – implementiert
+
+- **Checkpoint-Modell:** Gespeichert wird nach jeder geschafften Welle, jeder Perk-Wahl, jedem Denkmal-Upgrade und jedem Turmbau (`Game.serialize()`).
+- **Kein Mid-Wave-Save:** Der Restore startet immer am Anfang der nächsten Welle – halbfertige Wellenzustände (Gegnerpositionen, Projektile) werden nicht serialisiert. Das macht App-Kill/WebView-Kill robust.
+- **localStorage**, Schlüssel `denkmal-ansturm-save`, Versionsfeld `v` für spätere Migrationen (`src/save.js`).
+- **Wiederherstellung:** `Game.restore(data)` baut die 4 Türme auf ihren N/O/S/W-Plätzen wieder auf (`padKey` je Turm) und stellt LP, Energie, Perks und Denkmal-Stufen her; Zustand danach `paused`.
+- **Verworfen** wird der Speicher bei Niederlage, Sieg (Welle 100) und Neustart (`reset(true)`).
+- Blockiertes localStorage (z. B. Privater Modus) bricht nichts: Das Spiel läuft dann ohne Persistenz weiter.

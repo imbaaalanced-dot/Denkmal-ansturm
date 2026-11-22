@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createEngine } from './engine.js';
 import { buildWorld, Game } from './game.js';
 import { createHud } from './ui.js';
+import { loadRun } from './save.js';
 
 const canvas = document.getElementById('game');
 const engine = createEngine(canvas);
@@ -11,6 +12,17 @@ const game = new Game(engine.scene, world, hud);
 
 hud.setState(game.state);
 hud.sync(game);
+
+// Gespeicherten Run wiederherstellen (App-Wechsel / WebView-Kill)
+const saved = loadRun();
+if (saved && (saved.wave > 0 || (saved.towers && saved.towers.length > 0))) {
+  game.restore(saved);
+  if (saved.wave > 0) {
+    hud.banner('Run wiederhergestellt: nach Welle ' + saved.wave + ' - Weiter-Button startet die naechste Welle', 3400);
+  } else {
+    hud.banner('Aufbau wiederhergestellt: ' + (saved.towers ? saved.towers.length : 0) + '/4 Tuerme stehen', 2600);
+  }
+}
 
 // Speed x1 / x2 / x3 / x5
 const speedBtns = Array.from(document.querySelectorAll('[data-speed]'));

@@ -4,6 +4,7 @@ import { createGroundTexture, buildGravestones } from './ground.js';
 import { ENEMY_TYPES, buildEnemyMesh } from './enemies.js';
 import { rollPerkOptions } from './perks.js';
 import { TOWER_TYPES, buildTowerMesh } from './towers.js';
+import { saveRun, clearRun } from './save.js';
 
 // Level L01 - Ender Dorfkirche:
 // Verteidigungsziel ist der LOEWE auf dem Kriegerdenkmal (Zentrum der Arena).
@@ -211,10 +212,11 @@ export class Game {
     this.towers = [];
     this.projectiles = [];
     this.spawnQueue = [];
-    this.reset();
+    this.reset(false); // Konstruktor wischt den gespeicherten Run NICHT
   }
 
-  reset() {
+  reset(clearSave = true) {
+    if (clearSave) clearRun(); // Neustart: gespeicherten Run verwerfen
     for (const e of this.enemies) this.scene.remove(e.mesh);
     for (const t of this.towers) this.scene.remove(t.mesh);
     for (const p of this.projectiles) this.scene.remove(p.mesh);
@@ -283,6 +285,26 @@ export class Game {
     this.enemies.push({ mesh, hp, speed: t.speed, dmg, bounty: t.bounty, boss: !!t.boss, float: !!t.float, slowT: 0, slowAmt: 0 });
   }
 
+  // Baut einen Turm auf einen Platz (ohne Pruefung, ohne Kosten): genutzt von
+  // placeTower (Spielzug) und restore (Wiederaufbau aus dem Checkpoint).
+  buildTowerAt(pad, typeKey) {
+    const t = TOWER_TYPES[typeKey] || TOWER_TYPES.bolzen;
+    pad.userData.free = false;
+    pad.userData.tower = typeKey;
+    const tower = buildTowerMesh(typeKey);
+    tower.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    tower.position.copy(pad.position);
+    this.scene.add(tower);
+    // Basiswerte; Perk-Multiplikatoren werden zur Schusszeit angewandt
+    this.towers.push({
+      mesh: tower, head: tower.userData.head, cool: 0,
+      key: typeKey, padKey: pad.userData.key,
+      dmg: t.dmg, rate: t.rate, range: t.range,
+      splash: t.splash, splashRadius: t.splashRadius, slow: t.slow, slowDur: t.slowDur,
+    });
+    this.hud.sync(this);
+  }
+
   // Turmbau nur im Aufbau (state ready): Platz N/O/S/W + gewaehlter Turmtyp.
   // Nach dem Start stehen die 4 Tuerme fuer das ganze Level fest (Entscheidung = Strategie).
   placeTower(pad) {
@@ -291,20 +313,43 @@ export class Game {
       return false;
     }
     this.energy -= t.cost;
-    pad.userData.free = false;
-    const tower = buildTowerMesh(this.selectedTower);
-    tower.traverse((o) => { if (o.isMesh) o.castShadow = true; });
-    tower.position.copy(pad.position);
-    this.scene.add(tower);
-    // Basiswerte; Perk-Multiplikatoren werden zur Schusszeit angewandt
-    this.towers.push({
-      mesh: tower, head: tower.userData.head, cool: 0,
-      key: this.selectedTower,
-      dmg: t.dmg, rate: t.rate, range: t.range,
-      splash: t.splash, splashRadius: t.splashRadius, slow: t.slow, slowDur: t.slowDur,
-    });
-    this.hud.sync(this);
+    this.buildTowerAt(pad, this.selectedTower);
+    saveRun(this.serialize()); // auch den Aufbau gegen App-Kill sichern
     return true;
+  }
+
+  // --- Persistenz: Checkpoint nach jeder Welle (siehe src/save.js) ---
+  serialize() {
+    return {
+      v: 1,
+      wave: this.wave,
+      hp: Math.ceil(this.hp),
+      energy: Math.floor(this.energy),
+      perk: this.perk,
+      chosenPerks: this.chosenPerks,
+      monu: this.monu,
+      towers: this.towers.map((tw) => ({ pad: tw.padKey, type: tw.key })),
+    };
+  }
+
+  restore(data) {
+    this.reset(false); // interner Reset, Speicher nicht anfassen
+    this.wave = data.wave || 0;
+    this.hp = typeof data.hp === 'number' && data.hp > 0 ? data.hp : this.maxHp;
+    this.energy = typeof data.energy === 'number' ? data.energy : 60;
+    this.perk = Object.assign(this.perk, data.perk || {});
+    this.chosenPerks = Array.isArray(data.chosenPerks) ? data.chosenPerks : [];
+    this.monu = Object.assign(this.monu, data.monu || {});
+    const savedTowers = Array.isArray(data.towers) ? data.towers : [];
+    for (const saved of savedTowers) {
+      const pad = this.world.pads.find((p) => p.userData.key === saved.pad);
+      if (pad && pad.userData.free) this.buildTowerAt(pad, saved.type || 'bolzen');
+    }
+    this.waveCleared = true;
+    this.interWaveTimer = 3;
+    this.state = this.wave > 0 ? 'paused' : 'ready';
+    this.hud.setState(this.state);
+    this.hud.sync(this);
   }
 
   // Gibt true zurueck, wenn der Gegner den Treffer ueberlebt hat.
@@ -343,6 +388,7 @@ export class Game {
     this.hud.setState(this.state);
     this.hud.banner('Staerke erwacht: ' + perk.name + ' (' + this.chosenPerks.length + '. Perk)', 2600);
     this.hud.sync(this);
+    saveRun(this.serialize());
   }
 
   // --- Denkmal-Upgrade-Panel (Evil-Tower-artig): pausiert die Simulation ---
@@ -384,6 +430,7 @@ export class Game {
     if (key === 'range') { this.monu.range += 0.9; this.monu.lvRange += 1; }
     if (key === 'heal') { this.hp = Math.min(this.maxHp, this.hp + 150); }
     this.hud.sync(this);
+    saveRun(this.serialize());
     this.hud.showMonument(this.monumentOffers(), (k) => this.buyMonument(k), () => this.closeMonument());
   }
 
@@ -405,6 +452,7 @@ export class Game {
           this.energy += reward;
           this.hud.banner('Welle ' + this.wave + ' geschafft (+' + reward + ' Energie)');
           this.hud.sync(this);
+          saveRun(this.serialize()); // Checkpoint nach jeder Welle
           // Roguelite: Nach jeder 5. Welle oeffnet sich die Staerken-Wahl (1 aus 3)
           if (this.wave % 5 === 0 && this.wave < MAX_WAVES) {
             this.openPerkChoice();
@@ -415,6 +463,7 @@ export class Game {
           if (this.wave >= MAX_WAVES) {
             this.state = 'won';
             this.hud.banner('Loewe verteidigt! Welle ' + MAX_WAVES + ' geschafft - New Game+ folgt.', 8000);
+            clearRun();
             this.hud.setState(this.state);
           } else {
             this.nextWave();
@@ -449,6 +498,7 @@ export class Game {
         this.hud.sync(this);
         if (this.hp <= 0) {
           this.state = 'lost';
+          clearRun();
           this.hud.banner('Der Loewe ist gefallen ...', 8000);
           this.hud.setState(this.state);
         }
