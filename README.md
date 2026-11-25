@@ -52,6 +52,9 @@ denkmal-ansturm/
 │   ├── ASSET-PIPELINE.md # Fotogrammetrie-Workflow
 │   └── LEVELS.md         # Startlevel + Referenz-Recherche
 └── assets/
+    ├── enemies/          # Gegner-Sprites (PNG → SVG → 3D-Fallback)
+    ├── environment/      # Umgebungs-Art L01 (Himmel, Boden, Kirche, Grabsteine, Bäume)
+    ├── level/            # Level-Art (Steinlöwe/Denkmal, Level-Emblem)
     └── models/           # Fotogrammetrie-GLBs, pro Level ein Ordner
 ```
 
@@ -66,4 +69,4 @@ denkmal-ansturm/
 - [ ] dark-orchestrale KI-Musik + Sounds (WebView-Autoplay beachten)
 - [ ] Rewarded-Video-Einbindung (nur Boni, nie Balancing)
 
-**Hinweis:** Der Prototyp zeigt Platzhalter (prozeduraler Löwe, Blockkirche) und nutzt Platzhalter-Balancing, bis die echten GLB-Assets stehen.
+**Hinweis:** Umgebungs- und Level-Grafiken liegen als generierte SVGs in `assets/environment/` und `assets/level/` (Lade-Kette PNG → SVG → prozeduraler 3D-Platzhalter, siehe `src/art.js`). Balancing ist Platzhalter, bis die echten GLB-Assets stehen.

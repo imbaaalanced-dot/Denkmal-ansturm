@@ -179,3 +179,43 @@ export function buildGravestones(scene, churchAngle, churchWedge) {
   }
   return stones;
 }
+
+// Kahle Blutmond-Baeume als Kulisse im Aussenring (Radius 17.6-19.8),
+// ausserhalb der Spawnradien und ohne den Kirchenkeil.
+// 3D-Fallback (Stamm + Aeste); per Art-Sprite (assets/environment/baum.*)
+// ersetzt, sobald die Grafik geladen ist (siehe src/art.js).
+export function buildTrees(scene, churchAngle, churchWedge) {
+  const trees = [];
+  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x241a18, roughness: 1.0 });
+
+  const count = 9;
+  let placed = 0;
+  let guard = 0;
+  while (placed < count && guard < 200) {
+    guard++;
+    const a = Math.random() * Math.PI * 2;
+    const diff = Math.atan2(Math.sin(a - churchAngle), Math.cos(a - churchAngle));
+    if (Math.abs(diff) < churchWedge + 0.25) continue;
+    placed++;
+
+    const g = new THREE.Group();
+    const h = 3.2 + Math.random() * 1.8;
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.22, h, 7), trunkMat);
+    trunk.position.y = h / 2;
+    g.add(trunk);
+    for (let b = 0; b < 3; b++) {
+      const br = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.07, 1.1 + Math.random(), 5), trunkMat);
+      br.position.set((Math.random() - 0.5) * 0.5, h * (0.55 + Math.random() * 0.4), (Math.random() - 0.5) * 0.5);
+      br.rotation.z = (Math.random() - 0.5) * 1.6;
+      br.rotation.x = (Math.random() - 0.5) * 1.2;
+      g.add(br);
+    }
+    const rr = 17.6 + Math.random() * 2.2;
+    g.position.set(Math.cos(a) * rr, 0, Math.sin(a) * rr);
+    g.rotation.y = Math.random() * Math.PI;
+    g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    scene.add(g);
+    trees.push(g);
+  }
+  return trees;
+}

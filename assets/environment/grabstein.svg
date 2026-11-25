@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="400" viewBox="0 0 300 400">
+  <defs>
+    <linearGradient id="stone" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8a8378"/>
+      <stop offset="0.5" stop-color="#7d766b"/>
+      <stop offset="1" stop-color="#575046"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Boden-Schatten -->
+  <ellipse cx="150" cy="372" rx="95" ry="14" fill="#0d0508" opacity="0.5"/>
+
+  <!-- Platte mit Rundbogen -->
+  <path d="M62 368 L62 118 Q62 46 150 46 Q238 46 238 118 L238 368 Z" fill="url(#stone)"/>
+  <path d="M62 368 L62 118 Q62 46 150 46" fill="none" stroke="#e08a6a" stroke-width="4" opacity="0.4"/>
+
+  <!-- Innenflaeche -->
+  <path d="M80 350 L80 124 Q80 64 150 64 Q220 64 220 124 L220 350 Z" fill="none" stroke="#4a443c" stroke-width="4" opacity="0.8"/>
+
+  <!-- Kreuz-Einritzung -->
+  <g stroke="#453f36" stroke-width="9" stroke-linecap="round" opacity="0.9">
+    <path d="M150 120 L150 210"/>
+    <path d="M118 152 L182 152"/>
+  </g>
+
+  <!-- Risse -->
+  <g stroke="#3a352e" stroke-width="2" opacity="0.7" fill="none">
+    <path d="M96 250 L110 275 L104 300"/>
+    <path d="M205 180 L196 210 L206 232"/>
+  </g>
+
+  <!-- Moosflecken -->
+  <g fill="#50402e" opacity="0.65">
+    <ellipse cx="92" cy="340" rx="22" ry="10"/>
+    <ellipse cx="200" cy="330" rx="26" ry="12"/>
+    <ellipse cx="150" cy="360" rx="34" ry="9"/>
+    <ellipse cx="115" cy="96" rx="14" ry="7"/>
+  </g>
+
+  <!-- Gras am Fuss -->
+  <g stroke="#4a4132" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.8">
+    <path d="M40 372 L46 352 M58 374 L60 356 M240 372 L236 354 M262 374 L258 358"/>
+  </g>
+</svg>

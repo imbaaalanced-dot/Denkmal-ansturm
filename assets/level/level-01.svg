@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="bg" cx="0.5" cy="0.42" r="0.75">
+      <stop offset="0" stop-color="#2a1016"/>
+      <stop offset="0.7" stop-color="#1a0c10"/>
+      <stop offset="1" stop-color="#12060a"/>
+    </radialGradient>
+    <radialGradient id="moon" cx="0.42" cy="0.4" r="0.75">
+      <stop offset="0" stop-color="#ffd9b0"/>
+      <stop offset="0.6" stop-color="#e08a6a"/>
+      <stop offset="1" stop-color="#9a2430"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8c66a"/>
+      <stop offset="1" stop-color="#8a6f33"/>
+    </linearGradient>
+    <linearGradient id="lionStone" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c9ad72"/>
+      <stop offset="1" stop-color="#7a6238"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Aussenring -->
+  <circle cx="256" cy="256" r="244" fill="url(#bg)" stroke="url(#gold)" stroke-width="10"/>
+  <circle cx="256" cy="256" r="222" fill="none" stroke="#5c3636" stroke-width="3"/>
+
+  <!-- Blutmond -->
+  <circle cx="256" cy="150" r="62" fill="url(#moon)"/>
+  <circle cx="256" cy="150" r="88" fill="#e08a6a" opacity="0.14"/>
+
+  <!-- Kirche als Silhouette links hinten -->
+  <g fill="#0d0508">
+    <rect x="96" y="252" width="86" height="96"/>
+    <polygon points="88,254 139,196 190,254"/>
+    <rect x="118" y="176" width="42" height="120"/>
+    <polygon points="112,178 139,128 166,178"/>
+  </g>
+  <circle cx="139" cy="212" r="10" fill="#c9864a" opacity="0.9"/>
+
+  <!-- Sockel + Liege-Loewe (Denkmal) -->
+  <rect x="212" y="322" width="190" height="26" fill="#574a42"/>
+  <rect x="226" y="292" width="162" height="32" fill="#9a9082"/>
+  <path fill="url(#lionStone)" d="M244 292 C 244 258 268 240 306 238 C 350 236 384 252 392 274 C 396 286 388 292 374 292 Z"/>
+  <path fill="#8a6f42" d="M376 244 C 356 232 334 236 324 252 C 316 266 320 282 332 290 C 344 296 360 294 368 286 C 384 290 398 282 400 268 C 390 274 380 274 374 268 C 384 258 386 248 376 244 Z"/>
+  <circle cx="392" cy="258" r="20" fill="url(#lionStone)"/>
+  <path d="M404 254 C 416 252 424 257 425 263 C 425 268 419 271 412 270 L 403 265 Z" fill="#a8894e"/>
+  <path d="M384 292 L448 296 C 460 297 464 291 462 285 L 420 278 Z" fill="#a8894e"/>
+
+  <!-- Bodenlinie -->
+  <rect x="60" y="348" width="392" height="6" rx="3" fill="#0d0508" opacity="0.8"/>
+
+  <!-- Schriftzug L01 als Vektorformen (rendererunabhaengig) -->
+  <g fill="url(#gold)">
+    <rect x="198" y="404" width="10" height="44"/>
+    <rect x="198" y="438" width="32" height="10"/>
+    <ellipse cx="256" cy="426" rx="15" ry="22" fill="none" stroke="url(#gold)" stroke-width="9"/>
+    <rect x="294" y="406" width="9" height="40"/>
+    <polygon points="294,406 308,398 308,410 294,418"/>
+    <rect x="286" y="438" width="32" height="8"/>
+  </g>
+
+  <!-- Eckzierden -->
+  <g fill="url(#gold)">
+    <path d="M256 14 L264 26 L256 38 L248 26 Z"/>
+    <path d="M256 474 L264 486 L256 498 L248 486 Z"/>
+    <path d="M14 256 L26 248 L38 256 L26 264 Z"/>
+    <path d="M474 256 L486 248 L498 256 L486 264 Z"/>
+  </g>
+</svg>

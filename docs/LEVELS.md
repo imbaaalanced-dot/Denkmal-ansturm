@@ -7,7 +7,7 @@ Alle Level: 100 Wellen, Speed x1/x2/x3/x5, Boss jede 10. Welle (verdorbene Denkm
 - **Zentrum/Verteidigungsziel:** Der steinerne Löwe auf dem Kriegerdenkmal (liegender Löwe auf Sockel, Tafel und Lorbeerkränze, teils moosig/verwittert)
 - **Kulisse am Kartenrand:** Die Dorfkirche (Backstein, Uhrtürmchen, Schieferdach, Friedhofsumfeld) – ohne Verteidigungsrolle, Gegner spawnen 360° rings um den Löwen
 - **Erste Referenzen:** 8 Fotos von Marcel (Nov 2026): Löwe aus mehreren Perspektiven, Kirche mit Turm und Friedhof, Detail-Closeups
-- **Umgesetzt im Prototyp:** Platzhalter-Löwe + Platzhalter-Kirche; Spawns vor der Kirche leicht außen verschoben
+- **Umgesetzt im Prototyp:** generierte SVG-Art (`assets/level/loewe.svg`, `assets/environment/*.svg`, Lade-Kette PNG -> SVG -> 3D-Platzhalter via `src/art.js`); Spawns vor der Kirche leicht ausserhalb verschoben
 
 To do:
 - [ ] Foto-Set Löwe für Fotogrammetrie: 80–120 Fotos reihum (Kriegerdenkmal ist ideal: klein, frei zugänglich, gut von allen Seiten fotografierbar)
