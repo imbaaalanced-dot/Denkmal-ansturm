@@ -21,7 +21,7 @@ export function createHud() {
 
   return {
     sync(game) {
-      waveChip.textContent = 'Welle ' + game.wave + '/100';
+      waveChip.textContent = game.ngPlus > 0 ? 'NG+' + game.ngPlus + ' Welle ' + game.displayWave() + '/100' : 'Welle ' + game.wave + '/100';
       energyChip.textContent = 'Energie ' + Math.floor(game.energy);
       perkChip.textContent = 'Staerke ' + game.chosenPerks.length;
       towerChip.textContent = 'Tuerme ' + game.towers.length + '/' + (game.maxTowerSlots || 4);
@@ -29,7 +29,7 @@ export function createHud() {
       hpText.textContent = 'Loewe ' + Math.ceil(game.hp) + ' / ' + game.maxHp;
     },
     setState(state) {
-      const labels = { ready: 'Start', running: 'Pause', paused: 'Weiter', perk: 'Waehle Staerke', monument: 'Weiter', lost: 'Neustart', won: 'Neustart' };
+      const labels = { ready: 'Start', running: 'Pause', paused: 'Weiter', perk: 'Waehle Staerke', monument: 'Weiter', lost: 'Neustart', won: 'New Game+' };
       stateBtn.textContent = labels[state] || 'Start';
       // Turm-Leiste auch mitten im Run zeigen, solange der Ehrenplatz (Perk) offen ist
       const extraOpen = !!(gameRef && gameRef.hasOpenExtraPad());

@@ -70,8 +70,8 @@ export function generateWave(n) {
     spawnInterval = 0.6;
     const pool = poolFor(n, ['chaff', 'fast']);
     for (let i = 0; i < escort; i++) enemies.push(weightedPick(pool));
-    // Drachen-Eskalation: 1 ab W10, 2 ab W40, 3 ab W80 (Endboss-Gauntlet)
-    const dragons = n >= 80 ? 3 : (n >= 40 ? 2 : 1);
+    // Drachen-Eskalation: 1 ab W10, 2 ab W40, 3 ab W80, 4 ab NG+ W80 (Welle 180)
+    const dragons = n >= 180 ? 4 : (n >= 80 ? 3 : (n >= 40 ? 2 : 1));
     for (let i = 0; i < dragons; i++) enemies.push('drache');
     return { n, isBoss, label, spawnInterval, enemies };
   }

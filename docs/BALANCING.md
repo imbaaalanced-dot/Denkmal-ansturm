@@ -51,3 +51,23 @@ das Debuet. Der Spieler ERLEBT die Freischaltung, statt sie zufaellig zu verpass
   Denkmal-Upgrade-Kosten x1.6 je Stufe
 - Boss-Begleitung bei fuenf Rollover-Runs messen (Laufzeiten, Leaks, LP-Verlust je Welle)
 - Wellen 1-5: gefuehlte Dauer checken (Ziel: unter 45 s bei x1)
+
+
+## New Game+ (implementiert)
+
+- Nach jedem vollen Zyklus (100 Wellen) erreicht der Run den Zustand 'won'.
+  Der bisherige Sieg-Checkpoint bleibt liegen (kein clearRun mehr).
+- Der State-Button zeigt 'New Game+' und startet den naechsten Zyklus:
+  Wellenzaehler laeuft weiter (101, 102 ...), ANGEZEIGT wird die Welle im Zyklus
+  (displayWave = wave - 100 x ngPlus), z. B. 'NG+1 Welle 23/100'.
+- Skalierung PRO Zyklus (multiplikativ, stapelt sich bei weiteren Durchgaengen):
+  - Gegner-HP: x2
+  - Gegner-Tempo: +15 %
+  - Gegner-Schaden am Denkmal: x1.5
+  - Wellen-Belohnung, Kopfgeld und Welle-100-Loesung: unverstaerkt (bewusst: NG+
+    ist Prestige, kein Faehigkeits-Grind)
+- Bosse: bossIndex bleibt auf 10 gecappt (Wachstum, HP- und Schadens-Bonus des
+  Bosses stoppen bei<GamepadEvent>tueglichem Maximum); dafuer erscheinen ab NG+ W80
+  (Welle 180) vier Mech-Drachen pro Boss-Welle.
+- Perk-Wahl laeuft weiter (alle 5 Wellen im Zyklus), Ehrenplatz-Perk bleibt
+  einmalig ueber alle Zyklen (max 1 gilt run-global).

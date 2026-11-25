@@ -56,6 +56,8 @@ stateBtn.addEventListener('click', () => {
     }
     game.state = 'running';
     game.nextWave();
+  } else if (game.state === 'won') {
+    game.startNewGamePlus();
   } else {
     game.reset();
   }

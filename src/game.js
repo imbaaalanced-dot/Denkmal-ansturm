@@ -228,6 +228,7 @@ export class Game {
     this.removeExtraPad(); // Ehrenplatz ist Perk-abhaengig, gehoert nicht in einen frischen Run
     for (const pad of this.world.pads) pad.userData.free = true;
     this.wave = 0;
+    this.ngPlus = 0; // New-Game+-Zyklen (0 = erster Durchgang)
     this.hp = this.maxHp;
     this.energy = 60;
     this.speed = 1;
@@ -243,6 +244,23 @@ export class Game {
     this.waveCleared = true;
     this.state = 'ready';
     this.hud.setState(this.state);
+    this.hud.sync(this);
+  }
+
+  // New Game+ (docs/BALANCING.md): Nach jedem vollen Zyklus (100 Wellen) startet
+  // der State-Button den naechsten Zyklus. Angezeigt wird die Welle IM Zyklus.
+  displayWave() {
+    return Math.max(0, this.wave - MAX_WAVES * this.ngPlus);
+  }
+
+  startNewGamePlus() {
+    if (this.state !== 'won') return;
+    this.ngPlus += 1;
+    this.waveCleared = true;
+    this.interWaveTimer = 3;
+    this.state = 'running';
+    this.hud.setState(this.state);
+    this.hud.banner('New Game+ ' + this.ngPlus + ': Gegner doppelt zaeh, schneller und haerter - Tuerme, Staerken und Denkmal-Upgrades bleiben!', 4600);
     this.hud.sync(this);
   }
 
@@ -263,7 +281,7 @@ export class Game {
 
   spawnEnemy(typeKey) {
     const t = ENEMY_TYPES[typeKey] || ENEMY_TYPES.skelett;
-    const bossIndex = t.boss ? Math.max(1, Math.floor(this.wave / 10)) : 1;
+    const bossIndex = t.boss ? Math.max(1, Math.min(10, Math.floor(this.wave / 10))) : 1; // Cap 10: kein Monster-Wachstum ins Unermessliche
     const mesh = buildEnemyMesh(typeKey);
     const growth = t.boss ? 1 + (bossIndex - 1) * 0.12 : 1;
     mesh.scale.setScalar(t.scale * growth);
@@ -284,9 +302,9 @@ export class Game {
       mesh.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     }
     this.scene.add(mesh);
-    const hp = Math.round((t.hpBase + this.wave * t.hpPerWave) * (t.boss ? 1 + (bossIndex - 1) * 0.35 : 1));
-    const dmg = Math.round(t.dmg * (t.boss ? 1 + (bossIndex - 1) * 0.25 : 1));
-    this.enemies.push({ mesh, hp, speed: t.speed, dmg, bounty: t.bounty, boss: !!t.boss, float: !!t.float, slowT: 0, slowAmt: 0 });
+    const hp = Math.round((t.hpBase + this.wave * t.hpPerWave) * (t.boss ? 1 + (bossIndex - 1) * 0.35 : 1) * Math.pow(2, this.ngPlus));
+    const dmg = Math.round(t.dmg * (t.boss ? 1 + (bossIndex - 1) * 0.25 : 1) * Math.pow(1.5, this.ngPlus));
+    this.enemies.push({ mesh, hp, speed: t.speed * (1 + 0.15 * this.ngPlus), dmg, bounty: t.bounty, boss: !!t.boss, float: !!t.float, slowT: 0, slowAmt: 0 });
   }
 
   // Ehrenplatz-Perk ('platz'): oeffnet einen 5., goldglitzernden Turmplatz im
@@ -363,6 +381,7 @@ export class Game {
     return {
       v: 1,
       wave: this.wave,
+      ngPlus: this.ngPlus,
       hp: Math.ceil(this.hp),
       energy: Math.floor(this.energy),
       perk: this.perk,
@@ -375,6 +394,7 @@ export class Game {
   restore(data) {
     this.reset(false); // interner Reset, Speicher nicht anfassen
     this.wave = data.wave || 0;
+    this.ngPlus = typeof data.ngPlus === 'number' ? data.ngPlus : 0;
     this.hp = typeof data.hp === 'number' && data.hp > 0 ? data.hp : this.maxHp;
     this.energy = typeof data.energy === 'number' ? data.energy : 60;
     this.perk = Object.assign(this.perk, data.perk || {});
@@ -500,16 +520,17 @@ export class Game {
           this.hud.sync(this);
           saveRun(this.serialize()); // Checkpoint nach jeder Welle
           // Roguelite: Nach jeder 5. Welle oeffnet sich die Staerken-Wahl (1 aus 3)
-          if (this.wave % 5 === 0 && this.wave < MAX_WAVES) {
+          const dw = this.displayWave();
+          if (dw % 5 === 0 && dw < MAX_WAVES) {
             this.openPerkChoice();
           }
         }
         this.interWaveTimer -= dt;
         if (this.interWaveTimer <= 0) {
-          if (this.wave >= MAX_WAVES) {
+          if (this.displayWave() >= MAX_WAVES) {
             this.state = 'won';
-            this.hud.banner('Loewe verteidigt! Welle ' + MAX_WAVES + ' geschafft - New Game+ folgt.', 8000);
-            clearRun();
+            // Checkpoint bleibt liegen: New Game+ baut auf dem Run weiter auf
+            this.hud.banner('Loewe verteidigt! Zyklus geschafft - Button startet New Game+ (haerterer Ansturm, alles bleibt erhalten)', 8000);
             this.hud.setState(this.state);
           } else {
             this.nextWave();
