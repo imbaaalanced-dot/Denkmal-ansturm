@@ -50,6 +50,7 @@ const brickMat = new THREE.MeshStandardMaterial({ color: 0x7a5644, roughness: 0.
 const roofMat = new THREE.MeshStandardMaterial({ color: 0x3d3336, roughness: 0.75, metalness: 0.15 });
 const glassMat = new THREE.MeshStandardMaterial({ color: 0x352525, emissive: 0x5a3413, roughness: 0.4 });
 const slotMat = new THREE.MeshStandardMaterial({ color: 0x403630, roughness: 0.85 });
+const goldPadMat = new THREE.MeshStandardMaterial({ color: 0x8a6f33, roughness: 0.55, emissive: 0x2a1c05, emissiveIntensity: 0.7 });
 
 // --- Platzhalter: Loewe auf dem Kriegerdenkmal ---
 function buildLion() {
@@ -224,6 +225,7 @@ export class Game {
     this.towers = [];
     this.projectiles = [];
     this.spawnQueue = [];
+    this.removeExtraPad(); // Ehrenplatz ist Perk-abhaengig, gehoert nicht in einen frischen Run
     for (const pad of this.world.pads) pad.userData.free = true;
     this.wave = 0;
     this.hp = this.maxHp;
@@ -287,6 +289,38 @@ export class Game {
     this.enemies.push({ mesh, hp, speed: t.speed, dmg, bounty: t.bounty, boss: !!t.boss, float: !!t.float, slowT: 0, slowAmt: 0 });
   }
 
+  // Ehrenplatz-Perk ('platz'): oeffnet einen 5., goldglitzernden Turmplatz im
+  // Nordost (Keil zwischen N und O, Rand wie die Normalplaetze). Er ist der
+  // EINZIGE Platz, der auch mitten im Run bebaut werden darf.
+  get maxTowerSlots() {
+    return this.world.pads.length;
+  }
+
+  hasOpenExtraPad() {
+    return this.world.pads.some((p) => p.userData.extra && p.userData.free);
+  }
+
+  addExtraPad() {
+    if (this.world.pads.some((p) => p.userData.extra)) return;
+    const pad = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.25, 0.35, 10), goldPadMat);
+    const a = -Math.PI / 4; // zwischen N (-PI/2) und O (0)
+    pad.position.set(Math.cos(a) * 6.5, 0.18, Math.sin(a) * 6.5);
+    pad.receiveShadow = true;
+    pad.userData.free = true;
+    pad.userData.key = 'NO';
+    pad.userData.extra = true;
+    this.scene.add(pad);
+    this.world.pads.push(pad); // Raycaster in main.js greift automatisch zu
+  }
+
+  removeExtraPad() {
+    const i = this.world.pads.findIndex((p) => p.userData.extra);
+    if (i >= 0) {
+      this.scene.remove(this.world.pads[i]);
+      this.world.pads.splice(i, 1);
+    }
+  }
+
   // Baut einen Turm auf einen Platz (ohne Pruefung, ohne Kosten): genutzt von
   // placeTower (Spielzug) und restore (Wiederaufbau aus dem Checkpoint).
   buildTowerAt(pad, typeKey) {
@@ -311,7 +345,11 @@ export class Game {
   // Nach dem Start stehen die 4 Tuerme fuer das ganze Level fest (Entscheidung = Strategie).
   placeTower(pad) {
     const t = TOWER_TYPES[this.selectedTower] || TOWER_TYPES.bolzen;
-    if (this.state !== 'ready' || !pad.userData.free || this.energy < t.cost) {
+    // Normalplaetze N/O/S/W: nur im Aufbau vor Welle 1. Der goldene Ehrenplatz
+    // (Perk) darf auch mitten im Run bebaut werden.
+    const activeGame = this.state === 'ready' || this.state === 'running' || this.state === 'paused';
+    const buildAllowed = this.state === 'ready' || (pad.userData.extra && activeGame);
+    if (!buildAllowed || !pad.userData.free || this.energy < t.cost) {
       return false;
     }
     this.energy -= t.cost;
@@ -342,6 +380,8 @@ export class Game {
     this.perk = Object.assign(this.perk, data.perk || {});
     this.chosenPerks = Array.isArray(data.chosenPerks) ? data.chosenPerks : [];
     this.monu = Object.assign(this.monu, data.monu || {});
+    // Ehrenplatz-Perk: 5. Platz herstellen, BEVOR die Tuerme wiederaufgebaut werden
+    if (this.chosenPerks.indexOf('platz') >= 0) this.addExtraPad();
     const savedTowers = Array.isArray(data.towers) ? data.towers : [];
     for (const saved of savedTowers) {
       const pad = this.world.pads.find((p) => p.userData.key === saved.pad);
@@ -388,7 +428,11 @@ export class Game {
     this.interWaveTimer = Math.max(this.interWaveTimer, 3);
     this.hud.hidePerks();
     this.hud.setState(this.state);
-    this.hud.banner('Staerke erwacht: ' + perk.name + ' (' + this.chosenPerks.length + '. Perk)', 2600);
+    let bannerText = 'Staerke erwacht: ' + perk.name + ' (' + this.chosenPerks.length + '. Perk)';
+    if (perk.id === 'platz') {
+      bannerText = 'Ehrenplatz erwacht: 5. Turmplatz (Nordost) offen - Turmtyp unten waehlen, Platz antippen (10 Energie)';
+    }
+    this.hud.banner(bannerText, perk.id === 'platz' ? 4200 : 2600);
     this.hud.sync(this);
     saveRun(this.serialize());
   }

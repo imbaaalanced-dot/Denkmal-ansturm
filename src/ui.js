@@ -17,23 +17,30 @@ export function createHud() {
   const monumentRows = document.getElementById('monument-rows');
   const monumentClose = document.getElementById('monument-close');
   let bannerTimer = 0;
+  let gameRef = null;
 
   return {
     sync(game) {
       waveChip.textContent = 'Welle ' + game.wave + '/100';
       energyChip.textContent = 'Energie ' + Math.floor(game.energy);
       perkChip.textContent = 'Staerke ' + game.chosenPerks.length;
-      towerChip.textContent = 'Tuerme ' + game.towers.length + '/4';
+      towerChip.textContent = 'Tuerme ' + game.towers.length + '/' + (game.maxTowerSlots || 4);
       hpFill.style.width = Math.max(0, (game.hp / game.maxHp) * 100) + '%';
       hpText.textContent = 'Loewe ' + Math.ceil(game.hp) + ' / ' + game.maxHp;
     },
     setState(state) {
       const labels = { ready: 'Start', running: 'Pause', paused: 'Weiter', perk: 'Waehle Staerke', monument: 'Weiter', lost: 'Neustart', won: 'Neustart' };
       stateBtn.textContent = labels[state] || 'Start';
-      towerBar.hidden = state !== 'ready';
-      towerChip.hidden = state !== 'ready';
+      // Turm-Leiste auch mitten im Run zeigen, solange der Ehrenplatz (Perk) offen ist
+      const extraOpen = !!(gameRef && gameRef.hasOpenExtraPad());
+      const showTowers = state === 'ready' || (extraOpen && (state === 'running' || state === 'paused'));
+      towerBar.hidden = !showTowers;
+      towerChip.hidden = !showTowers;
       perkChip.hidden = state === 'ready';
       monumentBar.hidden = !(state === 'ready' || state === 'running' || state === 'paused');
+    },
+    bindGame(game) {
+      gameRef = game; // fuer setState-Entscheidungen (Ehrenplatz offen?)
     },
     banner(text, ms) {
       bannerEl.textContent = text;

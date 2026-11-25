@@ -24,3 +24,16 @@
 - `src/perks.js`: Pool + `rollPerkOptions(chosen)` (zieht 3 unterschiedliche Optionen, respektiert max-Stufen).
 - `Game.perk` hält alle aktiven Multiplikatoren; `Game.chosenPerks` die gezogenen IDs (für Savegames/Meta später).
 - Zustand `perk` friert die Simulation ein (nur Atmosphäre läuft weiter); der Start-Button blockiert bis zur Wahl.
+
+
+## Ehrenplatz (10. Perk, einmalig)
+
+- Icon: 🗼, max 1 Stufe (danach raus aus dem Karten-Pool)
+- Effekt: Oeffnet einen 5., goldglitzernden Turmplatz im Nordost (zwischen N und O, Radius 6.5 wie die Normalplaetze)
+- Er ist der EINZIGE Platz, der auch mitten im Run bebaut werden darf
+  (gezielte Ausnahme von der Regel "Aufstellung nur vor Welle 1"); Kosten 10 Energie wie jeder Turm
+- Die Turm-Typ-Leiste (Bolzen/Splitter/Frost) erscheint automatisch wieder,
+  solange der Ehrenplatz offen ist (ui.js setState via gameRef.hasOpenExtraPad())
+- Persistenz: chosenPerks enthaelt 'platz'; restore legt den Platz NEU an, bevor die
+  Tuerme wiederaufgebaut werden; ein bebauter Ehrenplatz serialisiert als pad 'NO' (maxTowerSlots = 5)
+- Neustart (reset) entfernt den Ehrenplatz wieder: Er gehoert zum Run, nicht zum Level

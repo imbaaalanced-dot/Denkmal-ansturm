@@ -9,6 +9,7 @@ const engine = createEngine(canvas);
 const world = buildWorld(engine.scene);
 const hud = createHud();
 const game = new Game(engine.scene, world, hud);
+hud.bindGame(game); // ui.js entscheidet damit selbst, ob die Turm-Leiste offen ist
 
 hud.setState(game.state);
 hud.sync(game);
@@ -84,8 +85,12 @@ canvas.addEventListener('pointerdown', (event) => {
   raycaster.setFromCamera(pointer, engine.camera);
   const hits = raycaster.intersectObjects(world.pads, false);
   if (hits.length > 0) {
-    if (game.state === 'ready') {
-      if (!game.placeTower(hits[0].object)) {
+    const hitPad = hits[0].object;
+    // Ehrenplatz (Perk) darf auch mitten im Run bebaut werden, sonst nur im Aufbau
+    const mayBuild = game.state === 'ready'
+      || (hitPad.userData.extra && (game.state === 'running' || game.state === 'paused'));
+    if (mayBuild) {
+      if (!game.placeTower(hitPad)) {
         hud.banner('Platz belegt oder zu wenig Energie (10 benoetigt)', 1400);
       }
     } else {
