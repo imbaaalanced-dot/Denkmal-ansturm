@@ -4,7 +4,7 @@ import { createGroundTexture, buildGravestones, buildTrees } from './ground.js';
 import { applySkyBackground, applyGroundTexture, attachArtSprite, attachArtSprites } from './art.js';
 import { ENEMY_TYPES, buildEnemyMesh } from './enemies.js';
 import { rollPerkOptions } from './perks.js';
-import { TOWER_TYPES, buildTowerMesh } from './towers.js';
+import { TOWER_TYPES, TOWER_UPGRADES, SELL_REFUND, buildTowerMesh } from './towers.js';
 import { saveRun, clearRun } from './save.js';
 
 // Level L01 - Ender Dorfkirche:
@@ -138,7 +138,8 @@ function spawnAngle() {
   let a = Math.random() * Math.PI * 2;
   const diff = Math.atan2(Math.sin(a - CHURCH_ANGLE), Math.cos(a - CHURCH_ANGLE));
   if (Math.abs(diff) < CHURCH_WEDGE) {
-    a = CHURCH_ANGLE + (diff < 0 ? -CHURCH_WEDGE : CHURCH_WEDGE) + (Math.random() - 0.5) * 0.15;
+    // Kirchenkeil weich in den freien Ring spiegeln (keine Klumpen an der Keilkante)
+    a = CHURCH_ANGLE + (diff < 0 ? -1 : 1) * (2 * CHURCH_WEDGE - Math.abs(diff)) + (Math.random() - 0.5) * 0.15;
   }
   return a;
 }
@@ -241,7 +242,7 @@ export class Game {
     this.projectiles = [];
     this.spawnQueue = [];
     this.removeExtraPad(); // Ehrenplatz ist Perk-abhaengig, gehoert nicht in einen frischen Run
-    for (const pad of this.world.pads) pad.userData.free = true;
+    for (const pad of this.world.pads) { pad.userData.free = true; pad.userData.tower = null; }
     this.wave = 0;
     this.ngPlus = 0; // New-Game+-Zyklen (0 = erster Durchgang)
     this.hp = this.maxHp;
@@ -257,6 +258,8 @@ export class Game {
     this.interWaveTimer = 0;
     this.waveData = null;
     this.waveCleared = true;
+    this.targetMode = 'first'; // Zielwahl: 'first' (am Denkmal) / 'strong' / 'near'
+    this.rerolls = 1; // 1 gratis Perk-Reroll pro Run
     this.state = 'ready';
     this.hud.setState(this.state);
     this.hud.sync(this);
@@ -317,9 +320,12 @@ export class Game {
       mesh.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     }
     this.scene.add(mesh);
-    const hp = Math.round((t.hpBase + this.wave * t.hpPerWave) * (t.boss ? 1 + (bossIndex - 1) * 0.35 : 1) * Math.pow(2, this.ngPlus));
-    const dmg = Math.round(t.dmg * (t.boss ? 1 + (bossIndex - 1) * 0.25 : 1) * Math.pow(1.5, this.ngPlus));
-    this.enemies.push({ mesh, hp, speed: t.speed * (1 + 0.15 * this.ngPlus), dmg, bounty: t.bounty, boss: !!t.boss, float: !!t.float, slowT: 0, slowAmt: 0 });
+    // Tuning-Pass 3: ab W40 sanfter zusaetzlicher HP-Multiplikator; Gegner-Schaden
+    // waechst leicht mit der Welle, damit einzelne Leaks late-game spuerbar bleiben
+    const waveHpMul = 1 + Math.max(0, this.wave - 40) * 0.02;
+    const hp = Math.round((t.hpBase + this.wave * t.hpPerWave) * (t.boss ? 1 + (bossIndex - 1) * 0.35 : 1) * Math.pow(2, this.ngPlus) * waveHpMul);
+    const dmg = Math.round(t.dmg * (t.boss ? 1 + (bossIndex - 1) * 0.25 : 1) * Math.pow(1.5, this.ngPlus) * (1 + this.wave * 0.008));
+    this.enemies.push({ mesh, hp, speed: t.speed * (1 + 0.15 * this.ngPlus), dmg, bounty: t.bounty, boss: !!t.boss, float: !!t.float, slowT: 0, slowAmt: 0, slowResist: t.slowResist || 0 });
   }
 
   // Ehrenplatz-Perk ('platz'): oeffnet einen 5., goldglitzernden Turmplatz im
@@ -356,7 +362,7 @@ export class Game {
 
   // Baut einen Turm auf einen Platz (ohne Pruefung, ohne Kosten): genutzt von
   // placeTower (Spielzug) und restore (Wiederaufbau aus dem Checkpoint).
-  buildTowerAt(pad, typeKey) {
+  buildTowerAt(pad, typeKey, saved) {
     const t = TOWER_TYPES[typeKey] || TOWER_TYPES.bolzen;
     pad.userData.free = false;
     pad.userData.tower = typeKey;
@@ -364,13 +370,20 @@ export class Game {
     tower.traverse((o) => { if (o.isMesh) o.castShadow = true; });
     tower.position.copy(pad.position);
     this.scene.add(tower);
-    // Basiswerte; Perk-Multiplikatoren werden zur Schusszeit angewandt
+    // Basiswerte; Perk-Multiplikatoren und Turm-Upgrades (lv) werden zur Schusszeit angewandt
     this.towers.push({
       mesh: tower, head: tower.userData.head, cool: 0,
       key: typeKey, padKey: pad.userData.key,
       dmg: t.dmg, rate: t.rate, range: t.range,
       splash: t.splash, splashRadius: t.splashRadius, slow: t.slow, slowDur: t.slowDur,
+      chain: t.chain || 0, chainRadius: t.chainRadius || 0,
+      lv: { dmg: 0, rate: 0, range: 0 }, spent: t.cost, baseCost: t.cost,
     });
+    if (saved) {
+      const tw = this.towers[this.towers.length - 1];
+      tw.lv = Object.assign(tw.lv, saved.lv || {});
+      tw.spent = typeof saved.spent === 'number' ? saved.spent : t.cost;
+    }
     this.hud.sync(this);
   }
 
@@ -402,7 +415,9 @@ export class Game {
       perk: this.perk,
       chosenPerks: this.chosenPerks,
       monu: this.monu,
-      towers: this.towers.map((tw) => ({ pad: tw.padKey, type: tw.key })),
+      towers: this.towers.map((tw) => ({ pad: tw.padKey, type: tw.key, lv: tw.lv, spent: tw.spent })),
+      targetMode: this.targetMode,
+      rerolls: this.rerolls,
     };
   }
 
@@ -415,12 +430,14 @@ export class Game {
     this.perk = Object.assign(this.perk, data.perk || {});
     this.chosenPerks = Array.isArray(data.chosenPerks) ? data.chosenPerks : [];
     this.monu = Object.assign(this.monu, data.monu || {});
+    this.targetMode = ['first', 'strong', 'near'].indexOf(data.targetMode) >= 0 ? data.targetMode : 'first';
+    this.rerolls = typeof data.rerolls === 'number' ? data.rerolls : 1;
     // Ehrenplatz-Perk: 5. Platz herstellen, BEVOR die Tuerme wiederaufgebaut werden
     if (this.chosenPerks.indexOf('platz') >= 0) this.addExtraPad();
     const savedTowers = Array.isArray(data.towers) ? data.towers : [];
     for (const saved of savedTowers) {
       const pad = this.world.pads.find((p) => p.userData.key === saved.pad);
-      if (pad && pad.userData.free) this.buildTowerAt(pad, saved.type || 'bolzen');
+      if (pad && pad.userData.free) this.buildTowerAt(pad, saved.type || 'bolzen', saved);
     }
     this.waveCleared = true;
     this.interWaveTimer = 3;
@@ -453,7 +470,20 @@ export class Game {
   openPerkChoice() {
     this.state = 'perk';
     this.hud.setState(this.state);
-    this.hud.showPerks(rollPerkOptions(this.chosenPerks), (perk) => this.pickPerk(perk));
+    this.showPerkRoll();
+  }
+
+  showPerkRoll() {
+    this.hud.showPerks(rollPerkOptions(this.chosenPerks), (perk) => this.pickPerk(perk), () => this.rerollPerks(), this.rerolls);
+  }
+
+  // 1 gratis Reroll pro Run (Rewarded-Video-Reroll siehe DESIGN-BRIEF, spaeter)
+  rerollPerks() {
+    if (this.state !== 'perk' || this.rerolls <= 0) return;
+    this.rerolls -= 1;
+    this.showPerkRoll();
+    this.hud.sync(this);
+    saveRun(this.serialize());
   }
 
   pickPerk(perk) {
@@ -486,6 +516,94 @@ export class Game {
     this.state = this.resumeState || 'running';
     this.hud.hideMonument();
     this.hud.setState(this.state);
+  }
+
+  // --- Turm-Panel mitten im Run: Upgrades (Schaden/Tempo/Reichweite) + Verkauf ---
+  openTower(pad) {
+    if (this.state !== 'ready' && this.state !== 'running' && this.state !== 'paused') return false;
+    const tower = this.towers.find((t) => t.padKey === pad.userData.key);
+    if (!tower) return false;
+    this.resumeState = this.state;
+    this.state = 'tower';
+    this.hud.setState(this.state);
+    this.refreshTowerPanel(tower);
+    return true;
+  }
+
+  refreshTowerPanel(tower) {
+    const t = TOWER_TYPES[tower.key] || TOWER_TYPES.bolzen;
+    this.hud.showTower(
+      t.icon + ' ' + t.name,
+      this.towerOffers(tower),
+      Math.round(tower.spent * SELL_REFUND),
+      (key) => this.buyTowerUpgrade(tower, key),
+      () => this.sellTower(tower),
+      () => this.closeTower()
+    );
+  }
+
+  closeTower() {
+    this.state = this.resumeState || 'running';
+    this.hud.hideTower();
+    this.hud.setState(this.state);
+    this.hud.sync(this);
+  }
+
+  towerOffers(tower) {
+    return TOWER_UPGRADES.map((cfg) => {
+      const level = tower.lv[cfg.key];
+      const cost = cfg.cost(tower);
+      const maxed = level >= cfg.max;
+      return {
+        key: cfg.key, icon: cfg.icon, name: cfg.name, desc: cfg.desc(tower),
+        cost, level, maxed, disabled: maxed || this.energy < cost,
+      };
+    });
+  }
+
+  buyTowerUpgrade(tower, key) {
+    const off = this.towerOffers(tower).find((o) => o.key === key);
+    if (!off || off.disabled) return;
+    this.energy -= off.cost;
+    tower.lv[key] += 1;
+    tower.spent += off.cost;
+    saveRun(this.serialize());
+    this.hud.sync(this);
+    this.refreshTowerPanel(tower);
+  }
+
+  sellTower(tower) {
+    const refund = Math.round(tower.spent * SELL_REFUND);
+    this.energy += refund;
+    const pad = this.world.pads.find((p) => p.userData.key === tower.padKey);
+    if (pad) { pad.userData.free = true; pad.userData.tower = null; }
+    this.scene.remove(tower.mesh);
+    const i = this.towers.indexOf(tower);
+    if (i >= 0) this.towers.splice(i, 1);
+    this.hud.banner(TOWER_TYPES[tower.key].name + ' verkauft (+' + refund + ' Energie)');
+    saveRun(this.serialize());
+    this.closeTower();
+  }
+
+  // --- Zielwahl der Tuerme: 'first' (am Denkmal) / 'strong' (staerkster) / 'near' (naechster) ---
+  cycleTargetMode() {
+    const modes = ['first', 'strong', 'near'];
+    this.targetMode = modes[(modes.indexOf(this.targetMode) + 1) % modes.length];
+    this.hud.sync(this);
+    saveRun(this.serialize());
+  }
+
+  // Welle vorziehen: Energie-Bonus fuer die restliche Wartezeit (2 pro Sekunde)
+  callNextWave() {
+    if (this.state !== 'running') return false;
+    if (!this.waveCleared || this.enemies.length > 0 || this.spawnQueue.length > 0) return false;
+    if (this.displayWave() >= MAX_WAVES) return false;
+    const bonus = Math.ceil(Math.max(0, this.interWaveTimer)) * 2;
+    this.energy += bonus;
+    this.hud.banner('Welle ' + (this.wave + 1) + ' vorgezogen (+' + bonus + ' Energie)');
+    this.interWaveTimer = 0;
+    this.hud.sync(this);
+    return true;
   }
 
   monumentOffers() {
@@ -529,7 +647,7 @@ export class Game {
       } else if (this.enemies.length === 0) {
         if (!this.waveCleared) {
           this.waveCleared = true;
-          const reward = 12 + Math.floor(this.wave / 2) + this.perk.waveBonus;
+          const reward = 12 + Math.min(Math.floor(this.wave / 2), 30) + this.perk.waveBonus; // Deckel bei 30 (Tuning-Pass 3)
           this.energy += reward;
           this.hud.banner('Welle ' + this.wave + ' geschafft (+' + reward + ' Energie)');
           this.hud.sync(this);
@@ -573,10 +691,12 @@ export class Game {
         }
       }
       if (reached.length > 0) {
+        const leakDmg = reached.reduce((s, e) => s + e.dmg, 0);
         for (const enemy of reached) {
           this.hp = Math.max(0, this.hp - enemy.dmg);
           this.removeEnemy(enemy);
         }
+        this.hud.flashDamage(leakDmg); // roter Blitz + Schadenszahl am Denkmal
         this.hud.sync(this);
         if (this.hp <= 0) {
           this.state = 'lost';
@@ -586,24 +706,27 @@ export class Game {
         }
       }
 
-      // Tuerme suchen Ziel und feuern
+      // Tuerme suchen Ziel und feuern (Zielwahl: Erster am Denkmal / Staerkster / Naechster am Turm)
       for (const tower of this.towers) {
         tower.cool -= dt;
         if (tower.cool > 0) continue;
-        const range = tower.range * this.perk.rangeMul;
+        const range = (tower.range + 0.8 * tower.lv.range) * this.perk.rangeMul;
+        const mode = this.targetMode;
         let target = null;
         let best = Infinity;
         for (const enemy of this.enemies) {
           const d = tower.mesh.position.distanceTo(enemy.mesh.position);
-          if (d <= range && d < best) { best = d; target = enemy; }
+          if (d > range) continue;
+          const score = mode === 'strong' ? -enemy.hp : mode === 'near' ? d : enemy.mesh.position.length();
+          if (score < best) { best = score; target = enemy; }
         }
         if (!target) continue;
-        tower.cool = tower.rate / this.perk.rateMul;
+        tower.cool = (tower.rate * Math.pow(0.85, tower.lv.rate)) / this.perk.rateMul;
         tower.head.lookAt(target.mesh.position);
-        let dmg = tower.dmg * this.perk.dmgMul;
+        let dmg = tower.dmg * (1 + 0.35 * tower.lv.dmg) * this.perk.dmgMul;
         let crit = false;
         if (Math.random() < this.perk.crit) { dmg *= 2; crit = true; }
-        const projColor = crit ? 0xfff2b0 : (tower.key === 'frost' ? 0x9fd9ff : tower.key === 'splitter' ? 0xff8a4a : 0xffd76a);
+        const projColor = crit ? 0xfff2b0 : (tower.key === 'frost' ? 0x9fd9ff : tower.key === 'splitter' ? 0xff8a4a : tower.key === 'blitz' ? 0xcfd8ff : 0xffd76a);
         const proj = new THREE.Mesh(
           new THREE.SphereGeometry(crit ? 0.24 : 0.16, 8, 8),
           new THREE.MeshBasicMaterial({ color: projColor })
@@ -616,7 +739,7 @@ export class Game {
         const splashFactor = tower.splash > 0 ? tower.splash : (this.perk.splash ? 0.5 : 0);
         const slowAmt = Math.max(tower.slow, this.perk.slow);
         const slowDur = slowAmt > 0 ? Math.max(tower.slowDur, this.perk.slowDur) : 0;
-        this.projectiles.push({ mesh: proj, target, speed: 16, dmg, splashFactor, splashRadius, slowAmt, slowDur });
+        this.projectiles.push({ mesh: proj, target, speed: 16, dmg, splashFactor, splashRadius, slowAmt, slowDur, chain: tower.chain || 0, chainRadius: tower.chainRadius || 0 });
       }
 
       // Der Loewe wehrt sich selbst: goldene Funken aus dem Waechterkristall
@@ -662,13 +785,26 @@ export class Game {
               }
             }
           }
+          // Kettenblitz: Schaden springt auf weitere Gegner im Umkreis (70 % je Sprung)
+          if (proj.chain > 0) {
+            const near = this.enemies
+              .filter((o) => o !== proj.target && o.mesh.position.distanceTo(hitPos) <= proj.chainRadius)
+              .sort((a, b) => a.mesh.position.distanceTo(hitPos) - b.mesh.position.distanceTo(hitPos));
+            for (let j = 0; j < Math.min(proj.chain, near.length); j++) {
+              this.damageEnemy(near[j], proj.dmg * Math.pow(0.7, j + 1));
+            }
+          }
           // Verlangsamung: Frostturm oder Frosthauch-Perk, wirkt im Treffer-Umfeld
+          // (Flug-Einheiten und schwere Elites haben slowResist, siehe enemies.js)
           if (proj.slowAmt > 0) {
             const slowRadius = proj.splashRadius > 0 ? proj.splashRadius : 1.4;
             for (const other of this.enemies.slice()) {
               if (other.mesh.position.distanceTo(hitPos) <= slowRadius) {
-                other.slowT = proj.slowDur;
-                other.slowAmt = Math.max(other.slowAmt, proj.slowAmt);
+                const amt = proj.slowAmt * (1 - (other.slowResist || 0));
+                if (amt > 0) {
+                  other.slowT = proj.slowDur;
+                  other.slowAmt = Math.max(other.slowAmt, amt);
+                }
               }
             }
           }

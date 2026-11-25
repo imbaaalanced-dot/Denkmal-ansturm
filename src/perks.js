@@ -12,7 +12,7 @@ export const PERK_POOL = [
     apply(g) { g.perk.bountyMul *= 1.3; } },
   { id: 'zins', icon: '⚡', name: 'Energiesegen', desc: '+8 Bonus-Energie pro geschaffter Welle', max: 4,
     apply(g) { g.perk.waveBonus += 8; } },
-  { id: 'steinhaut', icon: '🛡️', name: 'Steinhaut', desc: 'Der Löwe heilt sofort 120 LP', max: 99,
+  { id: 'steinhaut', icon: '🛡️', name: 'Steinhaut', desc: 'Der Löwe heilt sofort 120 LP', max: 5,
     apply(g) { g.hp = Math.min(g.maxHp, g.hp + 120); } },
   { id: 'frost', icon: '❄️', name: 'Frosthauch', desc: 'Treffer verlangsamen Gegner im Umkreis 2 s (−25 % Tempo)', max: 2,
     apply(g) { g.perk.slow = Math.min(0.45, g.perk.slow + 0.25); g.perk.slowDur = 2; } },
@@ -25,14 +25,24 @@ export const PERK_POOL = [
 ];
 
 // 3 zufaellige, unterschiedliche Optionen unter Beachtung der max-Stufen.
+// Ungesehene Perks werden mit Gewicht 2.5 gezogen (neue Optionen bevorzugt),
+// damit nicht ab Mitte des Runs nur noch Wiederholungen kommen.
 export function rollPerkOptions(chosen) {
   const counts = {};
   for (const id of chosen) counts[id] = (counts[id] || 0) + 1;
   const pool = PERK_POOL.filter((p) => (counts[p.id] || 0) < p.max);
+  const weight = (p) => ((counts[p.id] || 0) === 0 ? 2.5 : 1);
   const options = [];
   while (options.length < 3 && pool.length > 0) {
-    const i = Math.floor(Math.random() * pool.length);
-    options.push(pool.splice(i, 1)[0]);
+    let total = 0;
+    for (const p of pool) total += weight(p);
+    let r = Math.random() * total;
+    let idx = pool.length - 1;
+    for (let i = 0; i < pool.length; i++) {
+      r -= weight(pool[i]);
+      if (r <= 0) { idx = i; break; }
+    }
+    options.push(pool.splice(idx, 1)[0]);
   }
   return options;
 }

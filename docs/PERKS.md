@@ -15,10 +15,16 @@
 | Wachsame Augen 👁️ | +20 % Reichweite aller Türme | 4 |
 | Kriegsbeute 💰 | +30 % Kopfgeld | 4 |
 | Energiesegen ⚡ | +8 Bonus-Energie pro geschaffter Welle | 4 |
-| Steinhaut 🛡️ | Löwe heilt 120 LP (sofort) | beliebig |
+| Steinhaut 🛡️ | Löwe heilt 120 LP (sofort) | 5 |
 | Frosthauch ❄️ | Treffer verlangsamen Gegner im Umkreis 2 s (−25 %, max −45 %) | 2 |
 | Sprengbolzen 💥 | 50 % Flächenschaden, Radius +1,3 je Stufe | 2 |
 | Schwachstelle 🎯 | +20 % Krit-Chance (Doppelschaden, goldenes Projektil) | 2 |
+
+## Draw & Reroll
+
+- Ungesehene Perks werden mit Gewicht 2.5 gezogen (neue Optionen bevorzugt, `rollPerkOptions`).
+- **1x pro Run gratis neu würfeln** (🔄-Karte im Perk-Panel, Zähler `rerolls` im Checkpoint gespeichert).
+  Rewarded-Video-Reroll als weitere Quelle siehe DESIGN-BRIEF (offen).
 
 ## Technik
 - `src/perks.js`: Pool + `rollPerkOptions(chosen)` (zieht 3 unterschiedliche Optionen, respektiert max-Stufen).
