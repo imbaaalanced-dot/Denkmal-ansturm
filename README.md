@@ -8,6 +8,8 @@
 
 - **Echte Denkmäler als Levelzentrum** – fotorealistisch per Fotogrammetrie aus realen Referenzfotos
 - **360°-Ansturm** – Monster spawnen rund ums Denkmal, verteidigt wird ringförmig (feste Slot-Ringe)
+- **4 Turmtypen** (Bolzen/Frost/Splitter/Kettenblitz) mit gestaffelten Kosten – mitten im Run **ausbaubar** (Schaden/Tempo/Reichweite, 3 Stufen) und **verkaufbar** (70 % Erstattung), siehe [docs/TOWERS.md](docs/TOWERS.md)
+- **Zielwahl** wählbar (Erster am Denkmal / Stärkster / Nächster) und **Welle vorziehen** für Energie-Bonus
 - **100 Wellen pro Level**, Geschwindigkeit **x1 / x2 / x3 / x5**
 - **Bosse jede 10. Welle** – verdorbene Denkmal-Verstärkungen
 - **Roguelite-Perks nach je 5 Wellen** (1 aus 3 Karten, mit Specials)

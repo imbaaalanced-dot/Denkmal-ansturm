@@ -3,6 +3,7 @@ import { createEngine } from './engine.js';
 import { buildWorld, Game } from './game.js';
 import { createHud } from './ui.js';
 import { loadRun } from './save.js';
+import { TOWER_TYPES } from './towers.js';
 
 const canvas = document.getElementById('game');
 const engine = createEngine(canvas);
@@ -45,6 +46,10 @@ stateBtn.addEventListener('click', () => {
     game.closeMonument();
     return;
   }
+  if (game.state === 'tower') {
+    game.closeTower();
+    return;
+  }
   if (game.state === 'running') {
     game.state = 'paused';
   } else if (game.state === 'paused') {
@@ -65,14 +70,27 @@ stateBtn.addEventListener('click', () => {
   hud.sync(game);
 });
 
-// Turm-Typ waehlen (nur im Aufbau vor Welle 1 aktiv)
+// Turm-Typ waehlen (nur im Aufbau vor Welle 1 aktiv) + Info-Zeile aktualisieren
+const towerInfo = document.getElementById('tower-info');
+function updateTowerInfo() {
+  const t = TOWER_TYPES[game.selectedTower] || TOWER_TYPES.bolzen;
+  towerInfo.textContent = t.icon + ' ' + t.name + ' – ' + t.desc + ' (' + t.cost + ' ⚡)';
+}
 const towerBtns = Array.from(document.querySelectorAll('[data-tower]'));
 for (const btn of towerBtns) {
   btn.addEventListener('click', () => {
     game.selectedTower = btn.dataset.tower;
     for (const b of towerBtns) b.classList.toggle('active', b === btn);
+    updateTowerInfo();
   });
 }
+updateTowerInfo();
+
+// Zielwahl der Tuerme wechseln (Erster am Denkmal / Staerkster / Naechster am Turm)
+document.getElementById('target-btn').addEventListener('click', () => game.cycleTargetMode());
+
+// Naechste Welle vorziehen (Energie-Bonus fuer die Rest-Wartezeit)
+document.getElementById('wave-btn').addEventListener('click', () => game.callNextWave());
 
 // Denkmal-Button: oeffnet das Upgrade-Panel (pausiert)
 const monumentBtn = document.getElementById('monument-btn');
@@ -88,15 +106,20 @@ canvas.addEventListener('pointerdown', (event) => {
   const hits = raycaster.intersectObjects(world.pads, false);
   if (hits.length > 0) {
     const hitPad = hits[0].object;
-    // Ehrenplatz (Perk) darf auch mitten im Run bebaut werden, sonst nur im Aufbau
-    const mayBuild = game.state === 'ready'
-      || (hitPad.userData.extra && (game.state === 'running' || game.state === 'paused'));
-    if (mayBuild) {
-      if (!game.placeTower(hitPad)) {
-        hud.banner('Platz belegt oder zu wenig Energie (10 benoetigt)', 1400);
-      }
+    if (!hitPad.userData.free) {
+      // besetzter Platz antippen = Turm-Panel (Upgrades/Verkauf) mitten im Run
+      if (game.state === 'ready' || game.state === 'running' || game.state === 'paused') game.openTower(hitPad);
     } else {
-      hud.banner('Tuerme stehen fest: Aufstellung nur vor Welle 1', 1400);
+      // Ehrenplatz (Perk) darf auch mitten im Run bebaut werden, sonst nur im Aufbau
+      const mayBuild = game.state === 'ready'
+        || (hitPad.userData.extra && (game.state === 'running' || game.state === 'paused'));
+      if (mayBuild) {
+        if (!game.placeTower(hitPad)) {
+          hud.banner('Platz belegt oder zu wenig Energie', 1400);
+        }
+      } else {
+        hud.banner('Tuerme stehen fest: Aufstellung nur vor Welle 1', 1400);
+      }
     }
   } else if (game.state === 'ready' || game.state === 'running' || game.state === 'paused') {
     // Denkmal antippen = Upgrade-Panel oeffnen
