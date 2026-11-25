@@ -67,7 +67,7 @@ das Debuet. Der Spieler ERLEBT die Freischaltung, statt sie zufaellig zu verpass
   - Wellen-Belohnung, Kopfgeld und Welle-100-Loesung: unverstaerkt (bewusst: NG+
     ist Prestige, kein Faehigkeits-Grind)
 - Bosse: bossIndex bleibt auf 10 gecappt (Wachstum, HP- und Schadens-Bonus des
-  Bosses stoppen bei<GamepadEvent>tueglichem Maximum); dafuer erscheinen ab NG+ W80
+  Bosses stoppen beitueglichem Maximum); dafuer erscheinen ab NG+ W80
   (Welle 180) vier Mech-Drachen pro Boss-Welle.
 - Perk-Wahl laeuft weiter (alle 5 Wellen im Zyklus), Ehrenplatz-Perk bleibt
   einmalig ueber alle Zyklen (max 1 gilt run-global).
