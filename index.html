@@ -49,6 +49,21 @@
     .monument-row:not(:disabled):active { transform: scale(0.97); background: rgba(66, 30, 36, 0.95); }
     .monument-cost { margin-left: auto; font-weight: 800; color: #e8c66a; white-space: nowrap; }
     #monument-close { width: min(340px, 88vw); padding: 12px 6px; font-size: 14px; font-weight: 700; color: #e8ddd2; background: rgba(38, 20, 22, 0.95); border: 1px solid #4a2f2f; border-radius: 10px; cursor: pointer; }
+    #target-btn, #wave-btn { pointer-events: auto; cursor: pointer; font-family: inherit; color: #e8ddd2; }
+    #wave-btn { background: rgba(60, 34, 14, 0.92); border-color: #e8c66a; }
+    #tower-info { font-size: 11px; opacity: 0.8; text-align: center; min-height: 14px; }
+    #tower-overlay { position: fixed; inset: 0; z-index: 11; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; background: rgba(18, 7, 9, 0.92); padding: 16px; pointer-events: auto; }
+    #tower-overlay[hidden] { display: none; }
+    #tower-title { font-size: 20px; font-weight: 800; letter-spacing: 0.5px; color: #e8c66a; text-align: center; }
+    #tower-rows { display: flex; flex-direction: column; gap: 10px; width: min(340px, 88vw); }
+    #tower-sell { width: min(340px, 88vw); padding: 12px 6px; font-size: 14px; font-weight: 700; color: #ffb0a0; background: rgba(66, 22, 26, 0.95); border: 1px solid #a04a4a; border-radius: 10px; cursor: pointer; }
+    #tower-close { width: min(340px, 88vw); padding: 12px 6px; font-size: 14px; font-weight: 700; color: #e8ddd2; background: rgba(38, 20, 22, 0.95); border: 1px solid #4a2f2f; border-radius: 10px; cursor: pointer; }
+    #dmg-flash { position: fixed; inset: 0; z-index: 5; pointer-events: none; opacity: 0; background: radial-gradient(ellipse at center, rgba(178, 58, 72, 0) 35%, rgba(178, 58, 72, 0.5) 100%); }
+    #dmg-flash.hit { animation: dmgflash 0.45s ease-out; }
+    @keyframes dmgflash { 0% { opacity: 1; } 100% { opacity: 0; } }
+    #dmg-float { position: absolute; left: 50%; top: -2px; transform: translateX(-50%); color: #ff6a5a; font-size: 13px; font-weight: 800; text-shadow: 0 1px 2px #000; opacity: 0; pointer-events: none; }
+    #dmg-float.hit { animation: dmgfloat 0.8s ease-out; }
+    @keyframes dmgfloat { 0% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -20px); } }
   </style>
   <script type="importmap">
     { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -62,14 +77,18 @@
       <div class="chip" id="energy-chip">Energie 60</div>
       <div class="chip" id="perk-chip">Staerke 0</div>
       <div class="chip" id="tower-chip" hidden>Tuerme 0/4</div>
+      <button class="chip" id="target-btn" type="button">🎯 Erster</button>
+      <button class="chip" id="wave-btn" type="button" hidden>⚡ Welle rufen</button>
     </div>
     <div class="bottom">
-      <div id="hp-wrap"><div id="hp-fill"></div><span id="hp-text">Loewe 1000 / 1000</span></div>
+      <div id="hp-wrap"><div id="hp-fill"></div><span id="hp-text">Loewe 1000 / 1000</span><span id="dmg-float"></span></div>
       <div class="controls" id="tower-bar" hidden>
         <button data-tower="bolzen" class="active">🏹 Bolzen</button>
         <button data-tower="splitter">💥 Splitter</button>
         <button data-tower="frost">❄️ Frost</button>
+        <button data-tower="blitz">⚡ Kettenblitz</button>
       </div>
+      <div id="tower-info"></div>
       <div class="controls" id="monument-bar" hidden>
         <button id="monument-btn">🦁 Denkmal aufrüsten</button>
       </div>
@@ -80,10 +99,11 @@
         <button data-speed="5">x5</button>
         <button id="state-btn">Start</button>
       </div>
-      <div id="hint">Turm-Typ wählen → die 4 Plätze N/O/S/W besetzen · Denkmal (oder 🦁-Button) antippen = Upgrades, der Löwe wehrt sich selbst mit Gold-Funken · Stärken-Wahl nach jeder 5. Welle · 🗼-Stärke Ehrenplatz: 5. Turmplatz (Nordost), jederzeit baubar · New Game+ per Button nach jedem 100-Wellen-Zyklus</div>
+      <div id="hint">Turm-Typ waehlen -> die 4 Plaetze N/O/S/W besetzen (unterschiedliche Kosten) · besetzten Platz antippen = Turm ausbauen/verkaufen · Denkmal antippen = Denkmal-Upgrades · 🎯 Zielwahl (Erster/Staerkster/Naechster) · ⚡ Welle vorziehen fuer Bonus-Energie · Staerken-Wahl nach jeder 5. Welle (1x neu wuerfeln gratis) · Ehrenplatz-Perk: 5. Turmplatz (Nordost) · New Game+ nach jedem 100-Wellen-Zyklus</div>
     </div>
   </div>
   <div id="banner" hidden></div>
+  <div id="dmg-flash"></div>
   <div id="perk-overlay" hidden>
     <div id="perk-title">Wähle eine Stärke</div>
     <div id="perk-cards"></div>
@@ -93,6 +113,12 @@
     <div id="monument-title">🦁 Denkmal-Löwe</div>
     <div id="monument-rows"></div>
     <button id="monument-close" type="button">Weiter</button>
+  </div>
+  <div id="tower-overlay" hidden>
+    <div id="tower-title">Turm</div>
+    <div id="tower-rows"></div>
+    <button id="tower-sell" type="button">Verkaufen</button>
+    <button id="tower-close" type="button">Weiter</button>
   </div>
   <script type="module" src="./src/main.js"></script>
 </body>

@@ -43,12 +43,21 @@ das Debuet. Der Spieler ERLEBT die Freischaltung, statt sie zufaellig zu verpass
 - Spawn-Abstand je Wellen-Bild statt fest 0.5 s: Jagdtrupps fuehlen sich schnell an,
   Eliten bedrohlich langsam wuchtig.
 
+## Tuning-Pass 3 (Gameplay-Ueberarbeitung)
+
+- Turm-Kosten gestaffelt: Bolzen 10 / Frost 12 / Splitter 14 / Kettenblitz 16 (Start-Energie 60) -> Aufbau ist eine echte Entscheidung
+- Gegner-HP: zusaetzlicher Multiplikator ab W40 (+2 % pro Welle, `waveHpMul` in `spawnEnemy`)
+- Gegner-Schaden am Denkmal waechst mit der Welle: x(1 + 0.008 x Welle) -> Leaks bleiben late-game spuerbar
+- Wellen-Belohnung gedeckelt: 12 + min(Welle/2, 30) + Perk-Bonus
+- Slow-Resistenzen: Flug (Gargoyle, Geist) und schwere Elites (Golem, Knochenkoloss) nur 50 % Slow-Wirkung (`slowResist` in enemies.js)
+- Spawn-Winkel im Kirchenkeil werden in den freien Ring gespiegelt (keine Klumpen an der Keilkante, `spawnAngle`)
+- 4. Turmtyp Kettenblitz (Chain auf bis zu 3 Ziele)
+- Turm-Upgrades/-Verkauf mitten im Run (docs/TOWERS.md)
+
 ## Offene Balancing-Fragen (naechste Pass)
 
-- HP-Kurve ist rein linear: Pruefen, ob Wellen 60+ mit gestapelten Perks zu leicht werden
-  (Kandidat: sanfter HP-Multiplikator ab W40 in game.js spawnEnemy)
-- Energie-Ersparnis pruefen: Wellen-Belohnung 12 + n/2 wirkt grosszuegig gegenueber
-  Denkmal-Upgrade-Kosten x1.6 je Stufe
+- HP-Kurve: ERLEDIGT in Tuning-Pass 3 (sanfter HP-Multiplikator ab W40 in game.js spawnEnemy)
+- Energie: ERLEDIGT in Tuning-Pass 3 (Wellen-Belohnung gedeckelt bei 30, Turm-Kosten gestaffelt)
 - Boss-Begleitung bei fuenf Rollover-Runs messen (Laufzeiten, Leaks, LP-Verlust je Welle)
 - Wellen 1-5: gefuehlte Dauer checken (Ziel: unter 45 s bei x1)
 
