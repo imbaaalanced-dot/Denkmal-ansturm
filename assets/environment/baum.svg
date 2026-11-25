@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="600" viewBox="0 0 400 600">
+  <defs>
+    <linearGradient id="bark" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1c1216"/>
+      <stop offset="0.5" stop-color="#0d0810"/>
+      <stop offset="1" stop-color="#070510"/>
+    </linearGradient>
+    <radialGradient id="ember" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ff9a4a" stop-opacity="0.85"/>
+      <stop offset="0.5" stop-color="#c2761d" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#c2761d" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Boden-Schatten -->
+  <ellipse cx="200" cy="580" rx="120" ry="16" fill="#0d0508" opacity="0.55"/>
+
+  <!-- Wurzeln -->
+  <g fill="url(#bark)">
+    <path d="M200 580 L150 588 L188 566 Z"/>
+    <path d="M200 580 L250 590 L214 564 Z"/>
+    <path d="M200 578 L120 582 L190 562 Z"/>
+    <path d="M200 578 L285 580 L212 560 Z"/>
+  </g>
+
+  <!-- Stamm -->
+  <path fill="url(#bark)" d="M186 580 C 192 480 178 420 188 340 C 194 290 186 250 196 200 L214 200 C 206 250 214 292 208 342 C 200 420 214 480 220 580 Z"/>
+
+  <!-- Aeste -->
+  <g fill="none" stroke="url(#bark)" stroke-linecap="round">
+    <path d="M198 210 C 160 170 130 150 96 118" stroke-width="14"/>
+    <path d="M96 118 C 80 100 70 84 62 62" stroke-width="8"/>
+    <path d="M96 118 C 104 96 108 78 112 58" stroke-width="7"/>
+    <path d="M204 230 C 250 190 286 172 322 140" stroke-width="13"/>
+    <path d="M322 140 C 340 124 352 108 360 88" stroke-width="8"/>
+    <path d="M322 140 C 316 118 312 100 310 82" stroke-width="7"/>
+    <path d="M200 260 C 176 236 160 220 142 200" stroke-width="9"/>
+    <path d="M206 300 C 236 282 258 268 282 246" stroke-width="9"/>
+    <path d="M196 170 C 200 140 196 116 200 92" stroke-width="10"/>
+    <path d="M200 92 C 192 72 188 56 186 40" stroke-width="6"/>
+    <path d="M200 92 C 210 74 216 58 220 42" stroke-width="6"/>
+  </g>
+
+  <!-- Glut in einer Astgabel -->
+  <circle cx="282" cy="246" r="34" fill="url(#ember)"/>
+  <circle cx="142" cy="200" r="22" fill="url(#ember)" opacity="0.7"/>
+
+  <!-- wenige tote Blutmond-Blaetter -->
+  <g fill="#5e2f22" opacity="0.8">
+    <ellipse cx="120" cy="150" rx="7" ry="3.4" transform="rotate(30 120 150)"/>
+    <ellipse cx="290" cy="180" rx="6" ry="3" transform="rotate(-40 290 180)"/>
+    <ellipse cx="210" cy="120" rx="6" ry="3" transform="rotate(70 210 120)"/>
+    <ellipse cx="170" cy="250" rx="5" ry="2.6" transform="rotate(-15 170 250)"/>
+  </g>
+
+  <!-- Fledermaus -->
+  <path fill="#0d0508" d="M330 60 q8 -9 16 0 q8 -9 16 0 q-7 4 -16 3 q-9 1 -16 -3 Z"/>
+</svg>

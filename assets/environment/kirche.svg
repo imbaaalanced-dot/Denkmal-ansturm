@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600">
+  <defs>
+    <linearGradient id="brick" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8a6250"/>
+      <stop offset="0.6" stop-color="#7a5644"/>
+      <stop offset="1" stop-color="#54382c"/>
+    </linearGradient>
+    <linearGradient id="roof" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a3d40"/>
+      <stop offset="1" stop-color="#2c2429"/>
+    </linearGradient>
+    <linearGradient id="towerBrick" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#93684f"/>
+      <stop offset="1" stop-color="#5e4034"/>
+    </linearGradient>
+    <radialGradient id="windowGlow" cx="0.5" cy="0.45" r="0.6">
+      <stop offset="0" stop-color="#ffb066"/>
+      <stop offset="0.5" stop-color="#c2761d"/>
+      <stop offset="1" stop-color="#5a3413"/>
+    </radialGradient>
+    <pattern id="brickLines" width="46" height="18" patternUnits="userSpaceOnUse">
+      <path d="M0 17.5 L46 17.5 M23 0 L23 17.5 M0 8.5 L46 8.5 M0 0 L46 0" stroke="#4a2f26" stroke-width="1.2" opacity="0.5" fill="none"/>
+    </pattern>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e08a6a" stop-opacity="0.55"/>
+      <stop offset="0.25" stop-color="#e08a6a" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Boden-Schatten -->
+  <ellipse cx="480" cy="560" rx="380" ry="34" fill="#0d0508" opacity="0.55"/>
+
+  <!-- Schiff (Backstein) -->
+  <rect x="300" y="300" width="420" height="250" fill="url(#brick)"/>
+  <rect x="300" y="300" width="420" height="250" fill="url(#brickLines)" opacity="0.6"/>
+  <!-- Satteldach -->
+  <polygon points="270,305 510,170 750,305" fill="url(#roof)"/>
+  <path d="M270 305 L510 170 L750 305" fill="none" stroke="#1c1518" stroke-width="6"/>
+  <g stroke="#1f181b" stroke-width="3" opacity="0.7">
+    <path d="M330 268 L560 175"/><path d="M390 232 L610 160"/><path d="M450 198 L650 148"/>
+  </g>
+  <!-- Firstkappe -->
+  <rect x="502" y="158" width="16" height="26" fill="#2c2429"/>
+  <rect x="508" y="140" width="4" height="22" fill="#c9864a"/>
+
+  <!-- Uhrturm an der Westseite -->
+  <rect x="120" y="190" width="170" height="360" fill="url(#towerBrick)"/>
+  <rect x="120" y="190" width="170" height="360" fill="url(#brickLines)" opacity="0.5"/>
+  <polygon points="100,195 205,60 310,195" fill="url(#roof)"/>
+  <path d="M100 195 L205 60 L310 195" fill="none" stroke="#1c1518" stroke-width="6"/>
+  <!-- Turmkreuz -->
+  <rect x="202" y="18" width="6" height="34" fill="#c9864a"/>
+  <rect x="192" y="28" width="26" height="6" fill="#c9864a"/>
+  <!-- Uhr -->
+  <circle cx="205" cy="260" r="34" fill="#2c2429" stroke="#8a6f33" stroke-width="5"/>
+  <circle cx="205" cy="260" r="27" fill="#e8ddc8" opacity="0.9"/>
+  <path d="M205 260 L205 242 M205 260 L219 266" stroke="#3a2a1a" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="205" cy="260" r="3.4" fill="#3a2a1a"/>
+  <!-- Turmfenster -->
+  <path d="M185 340 L185 310 Q205 292 225 310 L225 340 Z" fill="url(#windowGlow)" opacity="0.95"/>
+  <path d="M185 430 L185 400 Q205 382 225 400 L225 430 Z" fill="url(#windowGlow)" opacity="0.8"/>
+
+  <!-- Portal + Fenster am Schiff -->
+  <path d="M560 550 L560 440 Q600 405 640 440 L640 550 Z" fill="#241a18" stroke="#c9864a" stroke-width="3" opacity="0.98"/>
+  <path d="M600 550 L600 452" stroke="#c9864a" stroke-width="2" opacity="0.6"/>
+  <path d="M400 550 L400 440 Q432 412 464 440 L464 550 Z" fill="url(#windowGlow)"/>
+  <path d="M400 550 L400 440 Q432 412 464 440 L464 550" fill="none" stroke="#1c1518" stroke-width="4"/>
+  <path d="M690 550 L690 450 Q718 425 746 450 L746 550 Z" fill="url(#windowGlow)" opacity="0.85"/>
+  <path d="M690 550 L690 450 Q718 425 746 450 L746 550" fill="none" stroke="#1c1518" stroke-width="4"/>
+
+  <!-- Blutmond-Rimlight von rechts -->
+  <rect x="300" y="170" width="450" height="380" fill="url(#rim)" opacity="0.5"/>
+  <path d="M750 305 L510 170 L505 178 L745 312 Z" fill="#e08a6a" opacity="0.35"/>
+
+  <!-- Moos am Sockel -->
+  <g fill="#50402e" opacity="0.55">
+    <ellipse cx="330" cy="548" rx="30" ry="8"/><ellipse cx="640" cy="552" rx="36" ry="9"/>
+    <ellipse cx="150" cy="552" rx="26" ry="7"/><ellipse cx="480" cy="556" rx="40" ry="8"/>
+  </g>
+
+  <!-- Kraehen -->
+  <g fill="#0d0508">
+    <path d="M760 120 q10 -10 20 0 q10 -10 20 0 q-8 4 -20 3 q-12 1 -20 -3 Z"/>
+    <path d="M820 90 q7 -7 14 0 q7 -7 14 0 q-6 3 -14 2 q-8 1 -14 -2 Z"/>
+  </g>
+</svg>

@@ -24,7 +24,9 @@ Neuentwicklung, bewusst getrennt von Denkmal TD2 (eigenes Repo), aber mit den do
 ## Codestruktur
 
 - engine.js – Renderer, Kamera, Licht (kein Gameplay)
-- game.js – Welt (Dummy-Denkmal, Slot-Ringe) + Game-Klasse (Wellen, Gegner, Türme, Projektile)
+- art.js – Art-Lader für Umgebung/Level (PNG → SVG → prozeduraler 3D-Fallback, wie enemies.js)
+- ground.js – prozeduraler Boden + Kulissen (Grabsteine, Bäume)
+- game.js – Welt (Denkmal, Kirche, Slot-Ringe) + Game-Klasse (Wellen, Gegner, Türme, Projektile)
 - wavedata.js – datengetriebene Wellen-Definition (Platzhalter-Balancing, später pro Level JSON)
 - ui.js – HUD-Bindung (DOM)
 - main.js – Bootstrap, Input, Render-Loop

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { generateWave, MAX_WAVES } from './wavedata.js';
-import { createGroundTexture, buildGravestones } from './ground.js';
+import { createGroundTexture, buildGravestones, buildTrees } from './ground.js';
+import { applySkyBackground, applyGroundTexture, attachArtSprite, attachArtSprites } from './art.js';
 import { ENEMY_TYPES, buildEnemyMesh } from './enemies.js';
 import { rollPerkOptions } from './perks.js';
 import { TOWER_TYPES, buildTowerMesh } from './towers.js';
@@ -95,6 +96,7 @@ function buildLion() {
   loewe.rotation.y = Math.PI * 0.12;
 
   group.add(plinth, pedestal, plaque, moss, loewe);
+  group.userData.loewe = loewe; // Level-Art (assets/level/loewe.*) ersetzt spaeter die Figur
   return group;
 }
 
@@ -142,11 +144,15 @@ function spawnAngle() {
 }
 
 export function buildWorld(scene) {
-  // Boden mit prozeduraler Kirchhof-Textur (Rasen, Pflasterplatz, Laub, Vignette)
-  const ground = new THREE.Mesh(
-    new THREE.CircleGeometry(21, 72),
-    new THREE.MeshStandardMaterial({ map: createGroundTexture(1024, 21), roughness: 0.95 })
-  );
+  // Blutmond-Nachthimmel als Hintergrund (assets/environment/himmel.*),
+  // Fallback: einfarbiger Himmel wie bisher (Nebelfarbe bleibt #1a0c10)
+  applySkyBackground(scene, ['assets/environment/himmel.png', 'assets/environment/himmel.svg'], 0x1a0c10);
+
+  // Boden: Art-Textur (assets/environment/boden.*) wenn vorhanden,
+  // sonst prozedurale Kirchhof-Textur (Rasen, Pflasterplatz, Laub, Vignette)
+  const groundMat = new THREE.MeshStandardMaterial({ roughness: 0.95 });
+  applyGroundTexture(groundMat, ['assets/environment/boden.png', 'assets/environment/boden.svg'], () => createGroundTexture(1024, 21));
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(21, 72), groundMat);
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   scene.add(ground);
@@ -164,14 +170,23 @@ export function buildWorld(scene) {
   const monument = buildLion();
   monument.traverse((o) => { if (o.isMesh) o.castShadow = true; });
   scene.add(monument);
+  // Level-Art: Steinloewe als Sprite auf dem Sockel (Fallback: 3D-Platzhalter-Loewe)
+  attachArtSprite(monument.userData.loewe, ['assets/level/loewe.png', 'assets/level/loewe.svg'], 1.3, { baseY: 1.44 });
 
   // Dorfkirche am Kartenrand, Kulisse
   const church = buildChurch();
   church.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   scene.add(church);
+  // Umgebungs-Art: Kirche als Sprite (Fallback: 3D-Blockkirche)
+  attachArtSprite(church, ['assets/environment/kirche.png', 'assets/environment/kirche.svg'], 9.2);
 
   // Grabsteine als Kirchhof-Kulisse im Aussenring
-  buildGravestones(scene, CHURCH_ANGLE, CHURCH_WEDGE);
+  const stones = buildGravestones(scene, CHURCH_ANGLE, CHURCH_WEDGE);
+  attachArtSprites(stones, ['assets/environment/grabstein.png', 'assets/environment/grabstein.svg'], 1.35);
+
+  // Kahle Baeume als Kulisse im Aussenring
+  const trees = buildTrees(scene, CHURCH_ANGLE, CHURCH_WEDGE);
+  attachArtSprites(trees, ['assets/environment/baum.png', 'assets/environment/baum.svg'], 4.6);
 
   // Wachterfunke ueber dem Loewen (leuchtet, dreht sich)
   const crystal = new THREE.Mesh(
